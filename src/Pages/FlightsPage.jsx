@@ -14,12 +14,42 @@ const FlightsPage = () => {
     const searchRef = useRef(null);
 
     const recommendedRoutes = [
-        { from: "Delhi", to: "Goa", tag: "Beach Escape" },
-        { from: "Delhi", to: "Mumbai", tag: "City Break" },
-        { from: "Delhi", to: "Bengaluru", tag: "Business & Leisure" },
-        { from: "Delhi", to: "Srinagar", tag: "Mountain Escape" },
-        { from: "Delhi", to: "Dubai", tag: "International" },
-        { from: "Delhi", to: "Jaipur", tag: "Weekend Trip" },
+        {
+            from: "Delhi",
+            to: "Goa",
+            tag: "Beach Escape",
+            image: "/images/delhi-goa.webp",
+        },
+        {
+            from: "Delhi",
+            to: "Mumbai",
+            tag: "City Break",
+            image: "/images/delhi-mumbai.webp",
+        },
+        {
+            from: "Delhi",
+            to: "Bengaluru",
+            tag: "Business & Leisure",
+            image: "/images/delhi-bengaluru.webp",
+        },
+        {
+            from: "Delhi",
+            to: "Srinagar",
+            tag: "Mountain Escape",
+            image: "/images/delhi-srinagar.webp",
+        },
+        {
+            from: "Delhi",
+            to: "Dubai",
+            tag: "International",
+            image: "/images/delhi-dubai.webp",
+        },
+        {
+            from: "Delhi",
+            to: "Jaipur",
+            tag: "Weekend Trip",
+            image: "/images/delhi-jaipur.webp",
+        },
     ];
 
     const scrollToSearch = () => {
@@ -36,7 +66,7 @@ const FlightsPage = () => {
                 {/* BACKGROUND */}
                 <div className="absolute inset-x-0 top-0 h-[430px] overflow-hidden bg-[#0B0F14] sm:h-[500px] md:inset-0 md:h-auto">
                     <img
-                        src="/images/flightpagebackground.webp"
+                        src="/images/flightpagebackground1.png"
                         alt="Flight booking with FlyingLyte"
                         className="h-full w-full object-cover object-[58%_center] sm:object-[55%_center] md:object-center"
                         loading="eager"
@@ -123,22 +153,80 @@ const FlightsPage = () => {
 
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {recommendedRoutes.map((route) => (
-                            <button key={`${route.from}-${route.to}`} type="button" onClick={scrollToSearch} className="group rounded-2xl border border-white/8 bg-[#111923] p-5 text-left transition duration-300 hover:-translate-y-1 hover:border-[#E6B35C]/35 hover:bg-[#141D27]">
-                                <div className="flex items-center justify-between">
-                                    <div className="grid h-10 w-10 place-items-center rounded-xl border border-[#E6B35C]/20 bg-[#E6B35C]/10 text-[#E6B35C]">
-                                        <Plane size={18} />
+                            <button
+                                key={`${route.from}-${route.to}`}
+                                type="button"
+                                onClick={scrollToSearch}
+                                className="
+    group relative min-h-[180px] overflow-hidden rounded-2xl
+    border border-white/10
+    text-left
+    transition duration-300
+    hover:-translate-y-1
+    hover:border-[#E6B35C]/40
+    hover:shadow-[0_18px_45px_rgba(0,0,0,0.35)]
+  "
+                            >
+                                {/* BACKGROUND IMAGE */}
+                                <img
+                                    src={route.image}
+                                    alt={`${route.from} to ${route.to}`}
+                                    loading="lazy"
+                                    className="
+  absolute inset-0 h-full w-full object-cover
+  brightness-110 saturate-110
+  transition duration-700
+  group-hover:scale-105
+  group-hover:brightness-115
+"
+                                />
+
+                                {/* DARK OVERLAY */}
+                                <div className="absolute inset-0 bg-black/20" />
+
+                                {/* GRADIENT FOR TEXT */}
+                                <div className="absolute inset-0 bg-linear-to-t from-[#07111c]/80 via-[#07111c]/20 to-transparent" />
+
+                                {/* CONTENT */}
+                                <div className="relative z-10 flex min-h-[180px] flex-col justify-between p-5">
+
+                                    <div className="flex items-center justify-between">
+                                        <div className="
+        grid h-10 w-10 place-items-center
+        rounded-xl
+        border border-[#E6B35C]/30
+        bg-black/35
+        text-[#E6B35C]
+        backdrop-blur-md
+      ">
+                                            <Plane size={18} />
+                                        </div>
+
+                                        <ArrowRight
+                                            size={17}
+                                            className="
+          text-white/60
+          transition
+          group-hover:translate-x-1
+          group-hover:text-[#E6B35C]
+        "
+                                        />
                                     </div>
 
-                                    <ArrowRight size={17} className="text-white/30 transition group-hover:translate-x-1 group-hover:text-[#E6B35C]" />
-                                </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 text-lg font-semibold text-white">
+                                            <span>{route.from}</span>
 
-                                <div className="mt-4 flex items-center gap-2 text-lg font-semibold text-white">
-                                    <span>{route.from}</span>
-                                    <span className="text-[#E6B35C]">→</span>
-                                    <span>{route.to}</span>
-                                </div>
+                                            <span className="text-[#E6B35C]">→</span>
 
-                                <p className="mt-1 text-xs text-white/45">{route.tag}</p>
+                                            <span>{route.to}</span>
+                                        </div>
+
+                                        <p className="mt-1 text-xs text-white/70">
+                                            {route.tag}
+                                        </p>
+                                    </div>
+                                </div>
                             </button>
                         ))}
                     </div>

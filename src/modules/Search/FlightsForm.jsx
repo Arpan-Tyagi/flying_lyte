@@ -21,9 +21,12 @@ const FlightsForm = () => {
 
 
 
-  const { setFlights, setPassengerCount, setSearchTravellers } =
-
-    useFlightStore();
+  const {
+    setFlights,
+    setPassengerCount,
+    setSearchTravellers,
+    setLastSearchPayload,
+  } = useFlightStore();
 
 
 
@@ -328,23 +331,20 @@ const FlightsForm = () => {
 
 
     const payload = {
-
       origin: formData.origin,
-
       destination: formData.destination,
-
       departure_date: formData.departure_date,
-
       return_date: tripType === "roundtrip" ? formData.return_date : null,
 
+      trip_type: tripType,
+
       adults: travellers.adults,
-
       children: travellers.children,
-
       infants: travellers.infants,
-
       flight_cabin_class: cabinClassMap[travellers.cabin],
 
+      // pagination always starts from page 1
+      page: 1,
     };
 
 
@@ -358,6 +358,7 @@ const FlightsForm = () => {
 
 
       const data = response?.data;
+      const pagination = data?.pagination || null;
 
 
 
@@ -432,13 +433,16 @@ const FlightsForm = () => {
         null;
 
 
+      // ✅ save search for result-page refresh
+      setLastSearchPayload(payload);
+
+
+
 
       setFlights({
-
         flights: results,
-
         traceId,
-
+        pagination,
       });
 
 

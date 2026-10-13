@@ -2024,20 +2024,20 @@ Years later, you may forget the hotel room number or your flight timing—but yo
   },
 
   {
-  id: 16,
-  slug: "goa-tour-package",
-  title:
-    "Discover Goa: Beautiful Beaches, Iconic Places & Perfect Holiday Escapes",
-  category: "Goa Tours",
-  author: "FlyingLyte Team",
-  date: "18 September 2026",
-  image:
-    "/images/blogs/goa_blog_image.jpeg",
+    id: 16,
+    slug: "goa-tour-package",
+    title:
+      "Discover Goa: Beautiful Beaches, Iconic Places & Perfect Holiday Escapes",
+    category: "Goa Tours",
+    author: "FlyingLyte Team",
+    date: "18 September 2026",
+    image:
+      "/images/blogs/goa_blog_image.jpeg",
 
-  shortDescription:
-    "Discover Goa with FlyingLyte. Explore beautiful beaches, Portuguese heritage, water sports, local food and our 5 Days / 4 Nights Goa tour package starting from ₹31,500 per person.",
+    shortDescription:
+      "Discover Goa with FlyingLyte. Explore beautiful beaches, Portuguese heritage, water sports, local food and our 5 Days / 4 Nights Goa tour package starting from ₹31,500 per person.",
 
-  description: `
+    description: `
 
 Golden beaches, thrilling water sports, Portuguese heritage, delicious seafood and colourful sunsets—Goa has everything you need for a memorable holiday.
 
@@ -2279,22 +2279,22 @@ Our travel experts will help you plan a comfortable and memorable Goa holiday.
 ### Golden beaches, colourful culture and unforgettable moments—experience Goa with FlyingLyte.
 
   `,
-},
-{
-  id: 17,
-  slug: "ayodhya-varanasi-tour-package",
-  title:
-    "Ayodhya & Varanasi Travel Guide: Sacred Places, Local Flavours & Holiday Packages",
-  category: "Ayodhya & Varanasi Tours",
-  author: "FlyingLyte Team",
-  date: "24 September 2026",
-  image:
-    "/images/blogs/ayodhya.webp",
+  },
+  {
+    id: 17,
+    slug: "ayodhya-varanasi-tour-package",
+    title:
+      "Ayodhya & Varanasi Travel Guide: Sacred Places, Local Flavours & Holiday Packages",
+    category: "Ayodhya & Varanasi Tours",
+    author: "FlyingLyte Team",
+    date: "24 September 2026",
+    image:
+      "/images/blogs/ayodhya.webp",
 
-  shortDescription:
-    "Explore Ayodhya and Varanasi with FlyingLyte. Visit sacred temples, peaceful ghats, attend Ganga Aarti, enjoy local food and book our 4 Days / 3 Nights tour package starting from ₹15,499 per person.",
+    shortDescription:
+      "Explore Ayodhya and Varanasi with FlyingLyte. Visit sacred temples, peaceful ghats, attend Ganga Aarti, enjoy local food and book our 4 Days / 3 Nights tour package starting from ₹15,499 per person.",
 
-  description: `
+    description: `
 
 Sacred temples, peaceful ghats, glowing evening aartis and delicious local food—**Ayodhya and Varanasi offer a beautiful mix of spirituality, culture and history.**
 
@@ -2543,23 +2543,23 @@ Our travel experts can help create a comfortable journey according to your requi
 ### Two sacred cities, timeless traditions and unforgettable moments—experience Ayodhya & Varanasi with FlyingLyte.
 
   `,
-},
+  },
 
-{
-  id: 18,
-  slug: "jim-corbett-tour-package",
-  title:
-    "Jim Corbett Travel Guide: Safari, Best Places, Food & Tour Package",
-  category: "Jim Corbett Tours",
-  author: "FlyingLyte Team",
-  date: "30 September 2026",
-  image:
-    "/images/blogs/jim_corbett.webp",
+  {
+    id: 18,
+    slug: "jim-corbett-tour-package",
+    title:
+      "Jim Corbett Travel Guide: Safari, Best Places, Food & Tour Package",
+    category: "Jim Corbett Tours",
+    author: "FlyingLyte Team",
+    date: "30 September 2026",
+    image:
+      "/images/blogs/jim_corbett.webp",
 
-  shortDescription:
-    "Explore Jim Corbett with FlyingLyte. Discover jungle safari zones, wildlife attractions, Kumaoni food, scenic resorts and our customizable 3 Days / 2 Nights package starting from ₹11,999 per person.",
+    shortDescription:
+      "Explore Jim Corbett with FlyingLyte. Discover jungle safari zones, wildlife attractions, Kumaoni food, scenic resorts and our customizable 3 Days / 2 Nights package starting from ₹11,999 per person.",
 
-  description: `
+    description: `
 
 Dense forests, flowing rivers, wildlife safaris and peaceful resort stays—**Jim Corbett is perfect for travellers who want nature, adventure and a relaxing break from city life.**
 
@@ -2802,7 +2802,293 @@ Enjoy early-morning safaris, peaceful forests, scenic resort stays and beautiful
 ### Dense forests, thrilling safaris and peaceful resort stays—experience Jim Corbett with FlyingLyte.
 
   `,
-},
+  },
+
+
+  {
+    id: 18,
+    slug: "vietnam-tour-package",
+    title:
+      "Vietnam Travel Guide: Best Places, Food, Stay & 7-Day Tour Package",
+    category: "Vietnam Tours",
+    author: "FlyingLyte Team",
+    date: "12 October 2026",
+    image:
+      "/images/blogs/vietnam.webp",
+
+    shortDescription:
+      "Explore Vietnam with FlyingLyte. Discover Hanoi, Ha Long Bay, Da Nang, Hoi An, local food and our customizable 7 Days / 6 Nights Vietnam package starting from ₹55,000 per person.",
+
+    description: `
+
+Lantern-lit streets, beautiful beaches, buzzing cities, scenic bays and delicious street food—**Vietnam is a destination where every city gives you a different experience.**
+
+Whether you love culture, beaches, food, shopping or nature, this guide will help you discover the **best places, food, stay options and useful travel tips** for Vietnam.
+
+## Why Visit Vietnam?
+
+Vietnam offers a perfect mix of:
+
+- Historic cities and local culture
+- Beautiful beaches
+- Ha Long Bay cruises
+- Street food and cafés
+- Heritage towns
+- Shopping and nightlife
+- Scenic landscapes
+
+For a 7-day trip, it is better to choose a few key destinations instead of trying to cover the whole country.
+
+## Best Places to Visit in Vietnam
+
+### Hanoi
+
+Start your journey in **Hanoi**, known for Hoan Kiem Lake, the Old Quarter, local markets, cafés and traditional street food.
+
+Spend some free time walking through the old streets instead of rushing from one attraction to another.
+
+### Ha Long Bay
+
+**Ha Long Bay** is famous for its limestone islands and beautiful water views.
+
+A cruise is one of the best experiences here. Depending on your plan, you can enjoy kayaking, cave visits, scenic views and sunset.
+
+### Da Nang
+
+**Da Nang** is ideal for travellers who want beaches and a relaxed atmosphere.
+
+Visit **My Khe Beach and Marble Mountains**, and enjoy local seafood and beautiful city views.
+
+### Hoi An
+
+**Hoi An** is famous for its lantern-lit streets, yellow heritage buildings, cafés and local markets.
+
+The Ancient Town looks especially beautiful in the evening.
+
+### Ho Chi Minh City
+
+Travellers who enjoy shopping, history and nightlife can include **Ho Chi Minh City** in their itinerary.
+
+## What to Eat in Vietnam?
+
+Food is a major part of the Vietnam travel experience.
+
+Popular dishes and drinks include:
+
+- Pho
+- Bún chả
+- Bánh mì
+- Vietnamese coffee
+- Egg coffee
+- Mì Quảng
+- Cao lầu
+- Hoi An chicken rice
+- Bánh xèo
+- Fresh seafood
+
+Trying local food in Hanoi, Da Nang and Hoi An can make your trip much more memorable.
+
+## Where to Stay in Vietnam?
+
+Choose your accommodation according to the destinations included in your itinerary.
+
+- **Hanoi:** Old Quarter or Hoan Kiem for cafés, markets and sightseeing
+- **Ha Long Bay:** Consider an overnight cruise for a more complete experience
+- **Da Nang:** My Khe Beach area for beaches and restaurants
+- **Hoi An:** Stay near the Ancient Town for evening walks and local markets
+- **Ho Chi Minh City:** Central areas are convenient for sightseeing and shopping
+
+## Best Time to Visit Vietnam
+
+Vietnam has different weather conditions across its northern, central and southern regions.
+
+Instead of following one fixed best season, choose your travel dates according to the **cities included in your itinerary**.
+
+Checking the expected weather for each selected destination can help you plan a more comfortable journey.
+
+## Important Vietnam Travel Tips
+
+- Do not try to cover the entire country in seven days
+- Keep some free time for cafés, markets and local areas
+- Use domestic flights when travelling between distant cities
+- Carry comfortable walking shoes
+- Keep some cash for local shops and smaller establishments
+- Check domestic flight baggage limits
+- Choose centrally located hotels for easier sightseeing
+- Always check current travel and entry requirements
+
+## Which Vietnam Trip Is Best for You?
+
+### Culture, Nature & Beaches
+
+**Hanoi → Ha Long Bay → Da Nang → Hoi An**
+
+This route offers a balanced combination of heritage, natural beauty, beaches and local food.
+
+### Culture, Nature & City Life
+
+**Hanoi → Ha Long Bay → Ho Chi Minh City**
+
+This route is suitable for travellers who want history, natural landscapes, shopping and modern city experiences.
+
+### Couples
+
+Spend more time in **Ha Long Bay and Hoi An** for scenic views, peaceful evenings and romantic experiences.
+
+### Families
+
+Choose fewer hotel changes, comfortable transfers and a relaxed sightseeing schedule.
+
+### Friends
+
+Add nightlife, cafés, shopping and adventure activities according to your preferences.
+
+## Your Vietnam Trip, Your Way
+
+FlyingLyte does not follow the same fixed itinerary for every traveller.
+
+Before creating your package, we understand your:
+
+- Travel dates
+- Budget
+- Preferred destinations
+- Hotel preferences
+- Travel style
+- Sightseeing interests
+- Transfer and flight requirements
+- Preferred trip pace
+
+We then create a **personalized Vietnam package according to your needs and comfort**.
+
+Want more beaches? Spend extra time in Da Nang.
+
+Love culture and food? Keep more time for Hanoi and Hoi An.
+
+Prefer shopping and nightlife? Ho Chi Minh City can be included in your itinerary.
+
+**First, we understand how you want to travel. Then, we design the trip around you.**
+
+## FlyingLyte Special Vietnam Tour
+
+FlyingLyte offers a customizable **7 Days / 6 Nights Vietnam package** for couples, families, friends and groups.
+
+### Package Overview
+
+**Destination:** Vietnam
+
+**Duration:** 7 Days / 6 Nights
+
+**Starting Price:** ₹55,000 Per Person
+
+**Traveller Rating:** 4/5
+
+### Package Includes
+
+- Hotel accommodation
+- Sightseeing
+- Transfers
+- Personalized travel planning
+- Customizable itinerary
+- Travel assistance
+- 24/7 travel support
+
+Exact inclusions may vary according to travel dates, selected hotels, flights and package customization.
+
+## Suggested 7-Day Vietnam Itinerary
+
+### Day 1: Arrival in Hanoi
+
+Arrive in Hanoi and complete your hotel check-in.
+
+Spend the evening exploring the Old Quarter, local cafés and nearby markets.
+
+### Day 2: Hanoi Sightseeing
+
+Explore the major attractions of Hanoi and experience the city's local food and café culture.
+
+Keep some free time to walk through the old streets at your own pace.
+
+### Day 3: Ha Long Bay Cruise
+
+Travel to Ha Long Bay and enjoy a scenic cruise experience.
+
+Depending on your selected package, you may enjoy kayaking, cave visits, meals and beautiful sunset views.
+
+### Day 4: Ha Long Bay to Da Nang
+
+Complete your Ha Long Bay experience and return to Hanoi.
+
+Continue your onward journey to Da Nang according to the selected travel plan.
+
+### Day 5: Da Nang Sightseeing
+
+Explore Da Nang's popular attractions, including My Khe Beach and Marble Mountains.
+
+Spend some time relaxing at the beach or enjoying local seafood.
+
+### Day 6: Hoi An Ancient Town
+
+Visit Hoi An Ancient Town for heritage streets, local markets, shopping and cafés.
+
+Enjoy the town's beautiful lantern-lit atmosphere in the evening.
+
+### Day 7: Departure
+
+Enjoy breakfast and some leisure time before checking out.
+
+Proceed towards the airport according to your departure schedule.
+
+The itinerary can be customized according to your travel dates and preferences.
+
+## Frequently Asked Questions
+
+### Is 7 Days Enough for Vietnam?
+
+Yes. A **7 Days / 6 Nights trip** is suitable if you focus on selected destinations instead of trying to cover the entire country.
+
+### Which Places Are Best for First-Time Travellers?
+
+**Hanoi, Ha Long Bay, Da Nang and Hoi An** offer a good combination of culture, nature, beaches and food.
+
+### Can the FlyingLyte Package Be Customized?
+
+Yes. The trip can be customized according to your **budget, travel dates, preferred destinations, hotels and travel style**.
+
+### How Much Does the Vietnam Package Cost?
+
+The FlyingLyte **7 Days / 6 Nights Vietnam package starts from ₹55,000 per person**.
+
+Final pricing depends on travel dates, hotel category, flights, number of travellers and package customization.
+
+## Plan Your Vietnam Holiday
+
+From drinking Vietnamese coffee in Hanoi and cruising through Ha Long Bay to enjoying Da Nang's beaches and Hoi An's lantern-lit streets—**Vietnam gives you a different experience every day.**
+
+### FlyingLyte Special Vietnam Tour
+
+**7 Days / 6 Nights**
+
+**Starting From ₹55,000 Per Person**
+
+- Hotels Included
+- Sightseeing Included
+- Transfers Included
+- Personalized Travel Planning
+- Customizable Package
+- 24/7 Travel Support
+
+**Tell FlyingLyte how you want to explore Vietnam, and we will build the trip around you.**
+
+📞 **Call/WhatsApp:** 9667455591
+
+📧 Email: info@flyinglyte.com
+
+🌐 Website: (https://www.flyinglyte.com/)
+
+### Vibrant cities, scenic bays and lantern-lit streets—experience Vietnam with FlyingLyte.
+
+  `,
+  },
 
 
 ];

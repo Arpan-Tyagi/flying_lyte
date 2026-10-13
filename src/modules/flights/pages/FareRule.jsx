@@ -852,7 +852,7 @@ const FareRule = () => {
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <button
             type="button"
-            onClick={() => navigate("/flights")}
+            onClick={() => navigate("/flights/results")}
             className="w-full md:w-auto px-6 py-3 rounded-xl font-semibold border border-(--border-soft) text-(--text-main)"
           >
             Back to Results

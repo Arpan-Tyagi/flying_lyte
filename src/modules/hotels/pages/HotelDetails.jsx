@@ -794,7 +794,7 @@ const HotelDetails = () => {
       setCurrentImageIndex(
         (previous) => (previous + 1) % images.length
       );
-    }, 2500);
+    }, 6000);
 
     return () => clearInterval(slider);
   }, [images.length]);

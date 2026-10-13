@@ -46200,9 +46200,9 @@ const airports = [
     country: "India"
   },
   {
-    city: "Mopa",
+    city: "GOA",
     iata: "GOX",
-    name: "Manohar International Airport",
+    name: "Manohar International Airport (MOPA)",
     country: "India"
   },
   {
