@@ -136,31 +136,11 @@ const Footer = () => {
           {/* Bottom Bar */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-xs text-gray-400 text-center md:text-left">
-              © 2024 FlyingLyte. All rights reserved.
+              © {new Date().getFullYear()} FlyingLyte. All rights reserved.
             </p>
 
             {/* Payment + Social Icons */}
             <div className="flex flex-col items-center md:items-end gap-4">
-
-              {/* We Accept */}
-              {/* <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
-                <span className="text-sm font-semibold text-white mr-1">
-                  WE ACCEPT:
-                </span>
-
-                {paymentMethods.map((payment) => (
-                  <div
-                    key={payment.name}
-                    className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden"
-                  >
-                    <img
-                      src={payment.image}
-                      alt={payment.name}
-                      className="w-full h-full object-contain p-1"
-                     loading="lazy" />
-                  </div>
-                ))}
-              </div> */}
 
               {/* Social Icons */}
               <div className="flex gap-5">
@@ -182,16 +162,6 @@ const Footer = () => {
                   className="hover:text-white active:text-white transition"
                 >
                   <Instagram size={18} />
-                </a>
-
-                <a
-                  href="https://twitter.com/yourusername"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Twitter"
-                  className="hover:text-white active:text-white transition"
-                >
-                  <Twitter size={18} />
                 </a>
               </div>
 

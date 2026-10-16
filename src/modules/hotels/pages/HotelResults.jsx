@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useHotelStore } from "../../../store/hotelStore";
 import { publicApi } from "../../../services/api";
+import SEO from "../../../components/SEO";
 
 const FALLBACK_IMAGE = "https://api.flyinglyte.com/media/hotels/default.jpg";
 
@@ -1394,6 +1395,11 @@ const HotelResults = () => {
 
   return (
     <div className="min-h-screen bg-[#0B0B0F] text-white pb-20 md:pb-0 pt-20">
+      <SEO
+        title={`Hotels in ${displayCity || "Top Destinations"}`}
+        description={`Find and book luxury and budget hotels in ${displayCity || "top destinations"}. Exclusive hotel deals, best rates, and instant booking confirmation with FlyingLyte.`}
+        canonical="https://www.flyinglyte.com/hotels"
+      />
       <div className="bg-[#0B0B0F]/95 backdrop-blur border-b border-gray-800 px-4 md:px-10 py-10 md:py-6">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
           <div>

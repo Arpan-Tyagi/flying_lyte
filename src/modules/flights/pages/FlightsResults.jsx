@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFlightStore } from "../../../store/flightStore";
+import SEO from "../../../components/SEO";
 
 const FlightsResults = () => {
   const navigate = useNavigate();
@@ -248,6 +249,11 @@ const FlightsResults = () => {
 
   return (
     <div className="min-h-screen bg-(--bg-main) pt-20 pb-24 text-(--text-main)">
+      <SEO
+        title="Flight Search & Instant Airfare Deals"
+        description="Search, compare and book domestic and international flights at the lowest airfares with FlyingLyte. Real-time availability, instant confirmation, and 24/7 travel assistance."
+        canonical="https://www.flyinglyte.com/flights"
+      />
       <div className="max-w-6xl mx-auto px-3 lg:px-4 py-6 grid lg:grid-cols-[260px_1fr] gap-6">
         {/* Desktop Filters */}
         {/* Desktop Filters */}

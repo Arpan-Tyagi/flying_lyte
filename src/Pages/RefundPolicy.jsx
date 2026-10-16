@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import SEO from "../components/SEO";
 import {
   FaPlane,
   FaHotel,
@@ -109,6 +110,11 @@ const RefundPolicy = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen py-24 px-4">
+      <SEO
+        title="Refund & Cancellation Policy"
+        description="Understand FlyingLyte's flight, hotel, and holiday package refund and cancellation policies, timelines, service fees, and terms."
+        canonical="https://www.flyinglyte.com/refund-policy"
+      />
       <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl p-6 md:p-10">
         
         {/* Header */}

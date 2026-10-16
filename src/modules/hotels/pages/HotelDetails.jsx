@@ -3,6 +3,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useHotelStore } from "../../../store/hotelStore";
+import SEO from "../../../components/SEO";
 
 const INDIA_CITY_KEYWORDS = [
   "delhi",
@@ -1022,6 +1023,11 @@ const HotelDetails = () => {
 
   return (
     <div className="min-h-screen bg-[#0B0B0F] text-white px-4 md:px-10 py-16 md:py-24">
+      <SEO
+        title={`${hotelName || "Hotel Details"} - Luxury Stays`}
+        description={`Book your stay at ${hotelName || "this hotel"}. Explore verified photos, rooms, amenities, location, and guest policies with FlyingLyte.`}
+        image={images?.[0]}
+      />
       <div className="relative group mb-6 overflow-hidden rounded-2xl bg-[#15151C]">
         <div
           className="relative w-full h-64 sm:h-80 md:h-[460px] lg:h-[520px] overflow-hidden"

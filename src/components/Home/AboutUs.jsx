@@ -1,7 +1,8 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plane, Hotel, Package, Globe, Calendar } from "lucide-react";
+import SEO from "../SEO";
 
 const AboutUs = () => {
   const navigate = useNavigate();
@@ -43,8 +44,18 @@ const AboutUs = () => {
     },
   ];
 
+  const location = useLocation();
+  const isAboutPage = location.pathname === "/about";
+
   return (
     <section className="py-24 px-6 bg-(--bg-main) text-(--text-main)">
+      {isAboutPage && (
+        <SEO
+          title="About Us - Elevating The Way The World Travels"
+          description="Learn more about FlyingLyte, our vision, mission, and how we deliver seamless flight bookings, premium hotel stays, and curated holiday packages."
+          canonical="https://www.flyinglyte.com/about"
+        />
+      )}
       <div className="max-w-6xl mx-auto space-y-24">
         {/* ABOUT */}
         <motion.div

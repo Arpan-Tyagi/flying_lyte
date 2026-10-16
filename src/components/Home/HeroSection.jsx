@@ -9,9 +9,11 @@ const HeroSection = () => {
       <div className="absolute inset-0">
         <img
           src="/images/HeroImage.jpg"
-          alt="Travel Background"
+          alt="Flight and Hotel Travel Background"
           className="w-full h-full object-cover"
-         loading="lazy" />
+          loading="eager"
+          fetchpriority="high"
+        />
         <div className="absolute inset-0 bg-black/60"></div>
       </div>
 
@@ -25,6 +27,9 @@ const HeroSection = () => {
             <br />
             <span className="bg-linear-to-r from-start to-end bg-clip-text text-transparent">
               Zero hassle.
+            </span>
+            <span className="block text-lg sm:text-xl md:text-2xl font-normal text-gray-200 mt-3">
+              Flight Booking, Premium Hotels & Curated Tour Packages
             </span>
           </h1>
 

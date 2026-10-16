@@ -31,6 +31,26 @@ const Blogs = () => {
           content="Read FlyingLyte travel blogs for destination guides, flight booking tips, hotel booking advice, honeymoon packages, group tours, international trips, and travel planning ideas."
         />
         <link rel="canonical" href="https://www.flyinglyte.com/blogs" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="blog" />
+        <meta property="og:site_name" content="FlyingLyte" />
+        <meta property="og:title" content="Travel Blogs, Guides & Tips | FlyingLyte" />
+        <meta
+          property="og:description"
+          content="Read FlyingLyte travel blogs for destination guides, flight booking tips, hotel booking advice, honeymoon packages, group tours, international trips, and travel planning ideas."
+        />
+        <meta property="og:url" content="https://www.flyinglyte.com/blogs" />
+        <meta property="og:image" content="https://www.flyinglyte.com/images/HeroImage.jpg" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Travel Blogs, Guides & Tips | FlyingLyte" />
+        <meta
+          name="twitter:description"
+          content="Read FlyingLyte travel blogs for destination guides, flight booking tips, hotel booking advice, honeymoon packages, group tours, international trips, and travel planning ideas."
+        />
+        <meta name="twitter:image" content="https://www.flyinglyte.com/images/HeroImage.jpg" />
       </Helmet>
 
       <div className="max-w-7xl mx-auto px-4">

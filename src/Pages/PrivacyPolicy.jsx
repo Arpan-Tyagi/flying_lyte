@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import SEO from "../components/SEO";
 
 const sectionVariant = {
   hidden: { opacity: 0, y: 30 },
@@ -13,6 +14,11 @@ const sectionVariant = {
 const PrivacyPolicy = () => {
   return (
     <div className="bg-linear-to-b from-blue-50 to-white min-h-screen py-24 px-4">
+      <SEO
+        title="Privacy Policy"
+        description="Read FlyingLyte's Privacy Policy. Learn how we collect, protect, and handle your personal data when booking flights, hotels, and holiday packages."
+        canonical="https://www.flyinglyte.com/privacy-policy"
+      />
       <div className="max-w-5xl mx-auto">
 
         {/* Header */}

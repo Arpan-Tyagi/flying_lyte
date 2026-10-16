@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
+import SEO from "../components/SEO";
 
 const ContactPage = () => {
   const [loading, setLoading] = useState(false);
@@ -48,6 +49,11 @@ const ContactPage = () => {
 
   return (
     <section className="min-h-screen bg-(--bg-main) py-25 px-4">
+      <SEO
+        title="Contact Us - 24/7 Travel Assistance & Customer Support"
+        description="Get in touch with FlyingLyte. Call +91 9667455591 or email info@flyinglyte.com for queries regarding flight bookings, hotel reservations, or custom tour itineraries."
+        canonical="https://www.flyinglyte.com/contact"
+      />
       <div className="max-w-6xl mx-auto">
         {/* Header Animation */}
         <motion.div

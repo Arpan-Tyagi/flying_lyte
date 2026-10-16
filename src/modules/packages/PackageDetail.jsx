@@ -361,6 +361,22 @@ Please share the best quote and itinerary.`;
       <Helmet>
         <title>{packageTitle} - FlyingLyte</title>
         <meta name="description" content={shortDescription} />
+        <link rel="canonical" href={`https://www.flyinglyte.com/packages/${slug}`} />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="FlyingLyte" />
+        <meta property="og:title" content={`${packageTitle} - FlyingLyte`} />
+        <meta property="og:description" content={shortDescription} />
+        <meta property="og:url" content={`https://www.flyinglyte.com/packages/${slug}`} />
+        <meta property="og:image" content={heroImage || "https://www.flyinglyte.com/images/HeroImage.jpg"} />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${packageTitle} - FlyingLyte`} />
+        <meta name="twitter:description" content={shortDescription} />
+        <meta name="twitter:image" content={heroImage || "https://www.flyinglyte.com/images/HeroImage.jpg"} />
+
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",

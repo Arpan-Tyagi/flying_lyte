@@ -6,6 +6,7 @@ import {
   Mail,
   ShieldCheck,
 } from "lucide-react";
+import SEO from "../components/SEO";
 
 const cancellationRules = [
   {
@@ -33,6 +34,11 @@ const cancellationRules = [
 const CancellationPolicyPage = () => {
   return (
     <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50 px-4 py-20 sm:px-6 lg:px-8">
+      <SEO
+        title="Cancellation Policy - Transparent Travel Terms"
+        description="Learn about FlyingLyte's cancellation policy, timeline-based charges, peak season rules, and procedures for canceling flight and tour reservations."
+        canonical="https://www.flyinglyte.com/cancellation"
+      />
       <section className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="relative overflow-hidden rounded-3xl bg-slate-950 px-6 py-10 text-white shadow-xl sm:px-10 md:py-14">

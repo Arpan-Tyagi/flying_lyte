@@ -1,9 +1,15 @@
 import React from "react";
 import { ShieldCheck, FileText, UserCheck, Mail } from "lucide-react";
+import SEO from "../components/SEO";
 
 const TermsConditions = () => {
   return (
     <div className="min-h-screen bg-linear-to-b from-blue-50 via-white to-white py-24 px-4">
+      <SEO
+        title="Terms & Conditions"
+        description="Review FlyingLyte's Terms and Conditions governing user bookings, flight ticketing, hotel reservations, payments, and platform usage."
+        canonical="https://www.flyinglyte.com/terms"
+      />
       {/* Hero */}
       <div className="max-w-5xl mx-auto text-center mb-10">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-3">

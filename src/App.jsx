@@ -1,44 +1,59 @@
-import React, { useEffect } from "react"
-import Register from "./Pages/Register";
+import React, { useEffect, Suspense, lazy } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import Home from "./Pages/Home";
-import LoginPage from "./Pages/LoginPage";
-import ContactPage from "./Pages/ContactPage";
 import Navbar from "./components/Home/Navbar";
-import FareRule from "./modules/flights/pages/FareRule";
-import FareQuote from "./modules/flights/pages/FareQuote";
-import SSRPage from "./modules/flights/pages/SSRPage";
-import PassengerDetails from "./modules/flights/pages/PassengerDetails";
-import ReviewBooking from "./modules/flights/pages/ReviewBooking";
-import BookingSuccess from "./modules/flights/pages/BookingSuccess";
-import BookingDetails from "./modules/flights/pages/FlightBookingDetails";
-import FlightAmendment from "./modules/flights/pages/FlightAmendment";
-import FlightPaymentSuccess from "./modules/flights/pages/FlightPaymentSuccess";
-import TermsConditions from "./Pages/TermsConditions";
-import PrivacyPolicy from "./Pages/PrivacyPolicy";
-import RefundPolicy from "./Pages/RefundPolicy";
-import PackageDetails from "./modules/packages/PackageDetail";
-import PackageSection from "./modules/packages/PackageSection";
-import PackageBookingSuccess from "./modules/packages/PackageBookingSuccess";
-import AboutUs from "./components/Home/AboutUs";
-import MyBookings from "./components/Home/Mybookings";
-import WhatsAppFloating from "./components/WhatsAppFloating";
 import Footer from "./components/Home/Footer/Footer";
-import FlightsResults from "./modules/flights/pages/FlightsResults";
-import HotelResults from "./modules/hotels/pages/HotelResults";
-import HotelDetails from "./modules/hotels/pages/HotelDetails";
-import PrebookLoader from "./modules/hotels/pages/PreBookLoader";
-import HotelBooking from "./modules/hotels/pages/HotelBooking";
-import HotelBookingDetails from "./modules/hotels/pages/HotelBookingDetails";
-import FlightBookingDetails from "./modules/flights/pages/FlightBookingDetails";
-import Blogs from "./Pages/Blogs";
-import BlogDetails from "./Pages/BlogDetails";
-import CancellationPolicyPage from "./Pages/CancellationPolicyPage";
-import HotelBookingSuccess from "./modules/hotels/pages/HotelBookingSuccess";
-import HotelInvoice from "./modules/hotels/pages/HotelInvoice";
-import HotelVoucher from "./modules/hotels/pages/HotelVoucher";
-import HotelReviewBooking from "./modules/hotels/pages/HotelReviewBooking";
-import PaymentSuccess from "./modules/hotels/pages/PaymentSuccess";
+import WhatsAppFloating from "./components/WhatsAppFloating";
+
+// Core Homepage (eagerly loaded for instant first paint)
+import Home from "./Pages/Home";
+
+// Lazy-loaded routes for code-splitting and Core Web Vitals optimization
+const Register = lazy(() => import("./Pages/Register"));
+const LoginPage = lazy(() => import("./Pages/LoginPage"));
+const MyBookings = lazy(() => import("./components/Home/Mybookings"));
+const AboutUs = lazy(() => import("./components/Home/AboutUs"));
+const ContactPage = lazy(() => import("./Pages/ContactPage"));
+const Blogs = lazy(() => import("./Pages/Blogs"));
+const BlogDetails = lazy(() => import("./Pages/BlogDetails"));
+const TermsConditions = lazy(() => import("./Pages/TermsConditions"));
+const PrivacyPolicy = lazy(() => import("./Pages/PrivacyPolicy"));
+const RefundPolicy = lazy(() => import("./Pages/RefundPolicy"));
+const CancellationPolicyPage = lazy(() => import("./Pages/CancellationPolicyPage"));
+
+// Packages
+const PackageDetails = lazy(() => import("./modules/packages/PackageDetail"));
+const PackageSection = lazy(() => import("./modules/packages/PackageSection"));
+const PackageBookingSuccess = lazy(() => import("./modules/packages/PackageBookingSuccess"));
+
+// Hotels
+const HotelResults = lazy(() => import("./modules/hotels/pages/HotelResults"));
+const HotelDetails = lazy(() => import("./modules/hotels/pages/HotelDetails"));
+const PrebookLoader = lazy(() => import("./modules/hotels/pages/PreBookLoader"));
+const HotelBooking = lazy(() => import("./modules/hotels/pages/HotelBooking"));
+const HotelReviewBooking = lazy(() => import("./modules/hotels/pages/HotelReviewBooking"));
+const PaymentSuccess = lazy(() => import("./modules/hotels/pages/PaymentSuccess"));
+const HotelVoucher = lazy(() => import("./modules/hotels/pages/HotelVoucher"));
+const HotelInvoice = lazy(() => import("./modules/hotels/pages/HotelInvoice"));
+const HotelBookingSuccess = lazy(() => import("./modules/hotels/pages/HotelBookingSuccess"));
+const HotelBookingDetails = lazy(() => import("./modules/hotels/pages/HotelBookingDetails"));
+
+// Flights
+const FlightsResults = lazy(() => import("./modules/flights/pages/FlightsResults"));
+const FareRule = lazy(() => import("./modules/flights/pages/FareRule"));
+const FareQuote = lazy(() => import("./modules/flights/pages/FareQuote"));
+const SSRPage = lazy(() => import("./modules/flights/pages/SSRPage"));
+const FlightAmendment = lazy(() => import("./modules/flights/pages/FlightAmendment"));
+const PassengerDetails = lazy(() => import("./modules/flights/pages/PassengerDetails"));
+const ReviewBooking = lazy(() => import("./modules/flights/pages/ReviewBooking"));
+const BookingSuccess = lazy(() => import("./modules/flights/pages/BookingSuccess"));
+const FlightBookingDetails = lazy(() => import("./modules/flights/pages/FlightBookingDetails"));
+const FlightPaymentSuccess = lazy(() => import("./modules/flights/pages/FlightPaymentSuccess"));
+
+const PageLoader = () => (
+  <div className="min-h-[60vh] flex items-center justify-center bg-(--bg-main)">
+    <div className="w-10 h-10 rounded-full border-2 border-(--gold-main) border-t-transparent animate-spin" />
+  </div>
+);
 
 const ScrollToTop = () => {
   const { pathname, search } = useLocation();
@@ -64,75 +79,75 @@ const App = () => {
   return (
     <main>
       <Navbar />
-       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/bookings" element={<MyBookings />} />
-        <Route path="/about" element={<AboutUs />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/blogs" element={<Blogs />} />
-        <Route path="/blogs/:slug" element={<BlogDetails />} />
-        <Route path="/terms" element={<TermsConditions />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/refund-policy" element={<RefundPolicy />} />
-        <Route path="/cancellation" element={<CancellationPolicyPage />} />
+      <ScrollToTop />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/bookings" element={<MyBookings />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/blogs/:slug" element={<BlogDetails />} />
+          <Route path="/terms" element={<TermsConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
+          <Route path="/cancellation" element={<CancellationPolicyPage />} />
 
-        <Route path="/packages" element={<PackageSection limit={8} />} />
-        <Route path="/packages/:slug" element={<PackageDetails />} />
-        <Route
-          path="/package_booking_success/:bookingId"
-          element={<PackageBookingSuccess />}
-        />
+          <Route path="/packages" element={<PackageSection limit={8} />} />
+          <Route path="/packages/:slug" element={<PackageDetails />} />
+          <Route
+            path="/package_booking_success/:bookingId"
+            element={<PackageBookingSuccess />}
+          />
 
-        {/* Hotel Routes */}
-        <Route path="/hotels" element={<HotelResults />} />
-        <Route path="/hotels/:id" element={<HotelDetails />} />
-        <Route path="/prebook" element={<PrebookLoader />} />
-        <Route path="/hotel-booking" element={<HotelBooking />} />
-        <Route path="/hotel-review-booking" element={<HotelReviewBooking />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/booking-details/:bookingId" element={<HotelVoucher />} />
-        <Route path="/hotel-invoice/:bookingId" element={<HotelInvoice />} />
-        <Route
-          path="/hotel-booking-success"
-          element={<HotelBookingSuccess />}
-        />
-        <Route
-          path="/booking-details/:bookingId"
-          element={<HotelBookingDetails />}
-        />
+          {/* Hotel Routes */}
+          <Route path="/hotels" element={<HotelResults />} />
+          <Route path="/hotels/:id" element={<HotelDetails />} />
+          <Route path="/prebook" element={<PrebookLoader />} />
+          <Route path="/hotel-booking" element={<HotelBooking />} />
+          <Route path="/hotel-review-booking" element={<HotelReviewBooking />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/booking-details/:bookingId" element={<HotelVoucher />} />
+          <Route path="/hotel-invoice/:bookingId" element={<HotelInvoice />} />
+          <Route
+            path="/hotel-booking-success"
+            element={<HotelBookingSuccess />}
+          />
+          <Route
+            path="/hotel-booking-details/:bookingId"
+            element={<HotelBookingDetails />}
+          />
 
-        {/* Flights */}
-        <Route path="/flights" element={<FlightsResults />} />
-        <Route path="/fare-rule" element={<FareRule />} />
-        <Route path="/fare-quote" element={<FareQuote />} />
-        <Route path="/ssr" element={<SSRPage />} />
-        <Route
-          path="/flight-amendment/:bookingId"
-          element={<FlightAmendment />}
-        />
-        <Route path="/passenger-details" element={<PassengerDetails />} />
-        <Route path="/review-booking" element={<ReviewBooking />} />
-        <Route path="/booking-success" element={<BookingSuccess />} />
-        <Route
-          path="/flight-booking-details/:id"
-          element={<FlightBookingDetails />}
-        />
-        <Route
-          path="/flight-payment-success"
-          element={<FlightPaymentSuccess />}
-        />
+          {/* Flights */}
+          <Route path="/flights" element={<FlightsResults />} />
+          <Route path="/fare-rule" element={<FareRule />} />
+          <Route path="/fare-quote" element={<FareQuote />} />
+          <Route path="/ssr" element={<SSRPage />} />
+          <Route
+            path="/flight-amendment/:bookingId"
+            element={<FlightAmendment />}
+          />
+          <Route path="/passenger-details" element={<PassengerDetails />} />
+          <Route path="/review-booking" element={<ReviewBooking />} />
+          <Route path="/booking-success" element={<BookingSuccess />} />
+          <Route
+            path="/flight-booking-details/:id"
+            element={<FlightBookingDetails />}
+          />
+          <Route
+            path="/flight-payment-success"
+            element={<FlightPaymentSuccess />}
+          />
 
-        {/* <Route path="/hotels" element={<HotelPage />} /> */}
-        {/* <Route path="/railways" element={<RailwayPage />} /> */}
-        {/* Optional: 404 Page */}
-        <Route
-          path="*"
-          element={<h1 className="text-center mt-20">404 - Page Not Found</h1>}
-        />
-      </Routes>
+          {/* 404 Fallback */}
+          <Route
+            path="*"
+            element={<h1 className="text-center mt-20 text-white">404 - Page Not Found</h1>}
+          />
+        </Routes>
+      </Suspense>
 
       <WhatsAppFloating />
       <Footer />

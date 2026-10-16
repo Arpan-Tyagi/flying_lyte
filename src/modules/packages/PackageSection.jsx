@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 import PackageCard from "./PackageCard";
 import { publicApi } from "../../services/api";
+import SEO from "../../components/SEO";
 
 const PACKAGE_BG_IMAGE = "/images/travel-pattern-bg.jpeg";
 
@@ -154,6 +155,13 @@ const PackageSection = ({ limit = 8 }) => {
         py-20 sm:py-22 md:py-24 lg:py-28 xl:py-32
       "
     >
+      {isPackagesPage && (
+        <SEO
+          title="Curated Holiday Tour Packages & Itineraries"
+          description="Discover handpicked holiday packages for Kashmir, Kerala, Korea, Vietnam, Dubai and more. Enjoy premium stays, curated itineraries, and 24/7 travel support with FlyingLyte."
+          canonical="https://www.flyinglyte.com/packages"
+        />
+      )}
       {/* Background Image */}
       <img
         src={PACKAGE_BG_IMAGE}
