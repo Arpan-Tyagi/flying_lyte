@@ -31,6 +31,7 @@ const FlightsForm = () => {
 
 
   const [tripType, setTripType] = useState("oneway");
+  const [showRoundTripNotice, setShowRoundTripNotice] = useState(false);
 
   const [travellersOpen, setTravellersOpen] = useState(false);
 
@@ -571,6 +572,118 @@ const FlightsForm = () => {
 
       {loading && <SearchScreenLoader type="flights" />}
 
+      {showRoundTripNotice && (
+        <div
+          className="
+      fixed inset-0 z-[9999]
+      flex items-center justify-center
+      bg-black/70
+      px-4
+      backdrop-blur-sm
+    "
+          onClick={() => setShowRoundTripNotice(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="
+        relative
+        w-full max-w-md
+        overflow-hidden
+        rounded-2xl
+        border border-[#E6B35C]/30
+        bg-[#07111c]
+        p-5 sm:p-6
+        text-white
+        shadow-[0_25px_80px_rgba(0,0,0,0.55)]
+      "
+          >
+            {/* Gold top accent */}
+            <div
+              className="
+          absolute left-0 top-0
+          h-1 w-full
+          bg-linear-to-r
+          from-[#F8D77D]
+          to-[#E6B35C]
+        "
+            />
+
+            <div className="flex items-start gap-4">
+              <div
+                className="
+            flex h-11 w-11
+            shrink-0
+            items-center justify-center
+            rounded-xl
+            bg-[#E6B35C]/15
+            text-xl
+          "
+              >
+                ✈
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p
+                  className="
+              text-xs font-semibold
+              uppercase
+              tracking-[0.18em]
+              text-[#E6B35C]
+            "
+                >
+                  FlyingLyte Update
+                </p>
+
+                <h3
+                  className="
+              mt-1
+              text-lg sm:text-xl
+              font-semibold
+              text-white
+            "
+                >
+                  Round Trip is under maintenance
+                </h3>
+
+                <p
+                  className="
+              mt-2
+              text-sm
+              leading-6
+              text-white/70
+            "
+                >
+                  Round Trip booking is currently unavailable while
+                  we improve the experience. Please use One Way
+                  booking for now.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowRoundTripNotice(false)}
+              className="
+          mt-5
+          w-full
+          rounded-xl
+          bg-linear-to-r
+          from-[#F8D77D]
+          to-[#E6B35C]
+          px-4 py-2.5
+          text-sm
+          font-semibold
+          text-black
+          transition
+          hover:opacity-90
+        "
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
 
         className="rounded-2xl border border-white/10 bg-[#07111c]/10 p-2.5 shadow-2xl backdrop-blur-none space-y-2.5 md:p-4"
@@ -669,24 +782,47 @@ const FlightsForm = () => {
 
               type="button"
 
+              // onClick={() => {
+
+              //   setTripType(type);
+
+
+
+              //   if (type === "oneway") {
+
+              //     setFormData((prev) => ({
+
+              //       ...prev,
+
+              //       return_date: "",
+
+              //     }));
+
+              //   }
+
+              // }}
+
               onClick={() => {
-
-                setTripType(type);
-
-
-
-                if (type === "oneway") {
+                // Round Trip temporarily disabled
+                if (type === "roundtrip") {
+                  setTripType("oneway");
 
                   setFormData((prev) => ({
-
                     ...prev,
-
                     return_date: "",
-
                   }));
 
+                  setShowRoundTripNotice(true);
+                  return;
                 }
 
+                // Existing One Way behaviour
+                setTripType("oneway");
+
+                setFormData((prev) => ({
+                  ...prev,
+                  return_date: "",
+                }));
               }}
 
               className={`px-3.5 py-1.5 rounded-full transition ${tripType === type

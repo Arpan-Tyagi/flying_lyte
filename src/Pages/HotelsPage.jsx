@@ -29,7 +29,7 @@ const HotelsPage = () => {
                 {/* BACKGROUND */}
                 <div className="absolute inset-x-0 top-0 h-[430px] overflow-hidden bg-[#0B0F14] sm:h-[500px] md:inset-0 md:h-auto">
                     <img
-                        src="/images/hotelspagebackground.jpg"
+                        src="/images/hotelspagebackground1.webp"
                         alt="Hotel booking with FlyingLyte"
                         className="h-full w-full object-cover object-[52%_center] sm:object-[50%_center] md:object-center"
                         loading="eager"
@@ -116,17 +116,82 @@ const HotelsPage = () => {
 
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {recommendedDestinations.map((destination) => (
-                            <button key={destination.name} type="button" onClick={scrollToSearch} className="group flex items-center gap-4 rounded-2xl border border-white/8 bg-[#111923] p-5 text-left transition duration-300 hover:-translate-y-1 hover:border-[#E6B35C]/35 hover:bg-[#141D27]">
-                                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-[#E6B35C]/20 bg-[#E6B35C]/10 text-[#E6B35C]">
+                            <button
+                                key={destination.name}
+                                type="button"
+                                onClick={scrollToSearch}
+                                className="
+    group relative flex items-center gap-4 overflow-hidden
+    rounded-2xl
+    border border-[#E6B35C]/20
+    bg-[#111923]
+    p-5 text-left
+    transition-all duration-300
+    hover:-translate-y-1
+    hover:border-[#E6B35C]/45
+    hover:bg-[#141D27]
+    hover:shadow-[0_14px_35px_rgba(0,0,0,0.35)]
+  "
+                            >
+                                {/* subtle full border */}
+                                <div className="pointer-events-none absolute inset-0 rounded-2xl border border-white/[0.03]" />
+
+                                {/* TOP LEFT GLOW */}
+                                <div className="pointer-events-none absolute -left-8 -top-8 h-20 w-20 rounded-full bg-[#E6B35C]/12 blur-2xl" />
+
+                                {/* TOP CENTER GLOW */}
+                                <div className="pointer-events-none absolute -top-8 left-1/2 h-16 w-28 -translate-x-1/2 rounded-full bg-[#E6B35C]/10 blur-2xl" />
+
+                                {/* TOP RIGHT GLOW */}
+                                <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-[#E6B35C]/12 blur-2xl" />
+
+                                {/* BOTTOM LEFT GLOW */}
+                                <div className="pointer-events-none absolute -bottom-8 -left-8 h-20 w-20 rounded-full bg-[#E6B35C]/10 blur-2xl" />
+
+                                {/* BOTTOM CENTER GLOW */}
+                                <div className="pointer-events-none absolute -bottom-8 left-1/2 h-16 w-28 -translate-x-1/2 rounded-full bg-[#E6B35C]/10 blur-2xl" />
+
+                                {/* BOTTOM RIGHT GLOW */}
+                                <div className="pointer-events-none absolute -bottom-8 -right-8 h-20 w-20 rounded-full bg-[#E6B35C]/10 blur-2xl" />
+
+                                {/* ICON */}
+                                <div
+                                    className="
+      relative z-10 grid h-12 w-12 shrink-0 place-items-center
+      rounded-xl
+      border border-[#E6B35C]/20
+      bg-[#E6B35C]/8
+      text-[#E6B35C]
+      transition duration-300
+      group-hover:border-[#E6B35C]/40
+      group-hover:bg-[#E6B35C]/12
+    "
+                                >
                                     <MapPin size={20} />
                                 </div>
 
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-semibold text-white">{destination.name}</h3>
-                                    <p className="mt-1 text-xs text-white/45">{destination.subtitle}</p>
+                                {/* TEXT */}
+                                <div className="relative z-10 min-w-0 flex-1">
+                                    <h3 className="font-semibold text-white">
+                                        {destination.name}
+                                    </h3>
+
+                                    <p className="mt-1 text-xs text-white/45">
+                                        {destination.subtitle}
+                                    </p>
                                 </div>
 
-                                <ArrowRight size={17} className="text-white/30 transition group-hover:translate-x-1 group-hover:text-[#E6B35C]" />
+                                {/* ARROW */}
+                                <ArrowRight
+                                    size={17}
+                                    className="
+      relative z-10
+      text-white/25
+      transition duration-300
+      group-hover:translate-x-1
+      group-hover:text-[#E6B35C]
+    "
+                                />
                             </button>
                         ))}
                     </div>

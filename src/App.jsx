@@ -31,6 +31,7 @@ import HotelResults from "./modules/hotels/pages/HotelResults";
 import HotelDetails from "./modules/hotels/pages/HotelDetails";
 import PrebookLoader from "./modules/hotels/pages/PreBookLoader";
 import HotelBooking from "./modules/hotels/pages/HotelBooking";
+import Chatbot from "./components/chatbot/Chatbot";
 import HotelBookingDetails from "./modules/hotels/pages/HotelBookingDetails";
 import FlightBookingDetails from "./modules/flights/pages/FlightBookingDetails";
 import Blogs from "./Pages/Blogs";
@@ -144,6 +145,7 @@ const App = () => {
       </Routes>
 
       <WhatsAppFloating />
+      <Chatbot />
       <Footer />
     </main>
   );
