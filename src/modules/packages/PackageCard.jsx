@@ -44,8 +44,13 @@ const PackageCard = ({ pkg }) => {
         <img
           src={pkg.images?.[0]?.image || "/images/package-placeholder.jpg"}
           alt={pkg.tour_name}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/images/package-placeholder.jpg";
+          }}
           className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
-         loading="lazy" />
+          loading="lazy"
+        />
 
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
 

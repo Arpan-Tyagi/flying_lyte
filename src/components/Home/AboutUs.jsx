@@ -111,9 +111,9 @@ const AboutUs = () => {
           </div>
 
           <img
-            src="/images/aboutImage.webp"
-            alt="Travel"
-            className="rounded-2xl shadow-lg"
+            src="/images/about_vision.jpg"
+            alt="FlyingLyte Elevated Travel Experience"
+            className="rounded-2xl shadow-2xl border border-[var(--border-soft)] w-full h-[320px] md:h-[380px] object-cover"
             loading="lazy" />
         </motion.div>
 
