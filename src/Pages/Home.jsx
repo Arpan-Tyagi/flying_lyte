@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import HeroSection from "../components/Home/HeroSection";
 import WhyChooseUs from "./WhyChooseUs";
 import TestimonialsSection from "./TestimonialsSection";
@@ -6,9 +6,29 @@ import CTASection from "../components/Home/CTASection";
 import AboutUs from "../components/Home/AboutUs";
 import PackageSection from "../modules/packages/PackageSection";
 import BlogSection from "../components/Home/BlogSection";
+import TripEnquiryPopup from "../components/common/TripEnquiryPopup";
 import SEO from "../components/SEO";
 
+let popupCheckedForThisPageLoad = false;
+
 const Home = () => {
+  const [showTripPopup, setShowTripPopup] = useState(false);
+
+  useEffect(() => {
+    const navigationEntry = performance.getEntriesByType("navigation")[0];
+    const isPageRefresh = navigationEntry?.type === "reload";
+
+    if (!isPageRefresh || popupCheckedForThisPageLoad) return;
+
+    popupCheckedForThisPageLoad = true;
+
+    const timer = setTimeout(() => {
+      setShowTripPopup(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="bg-(--bg-main)">
       <SEO
@@ -23,6 +43,9 @@ const Home = () => {
       <BlogSection />
       <WhyChooseUs />
       <TestimonialsSection />
+      {showTripPopup && (
+        <TripEnquiryPopup onClose={() => setShowTripPopup(false)} />
+      )}
     </div>
   );
 };

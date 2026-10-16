@@ -50,8 +50,8 @@ const ContactPage = () => {
   return (
     <section className="min-h-screen bg-(--bg-main) py-25 px-4">
       <SEO
-        title="Contact Us - 24/7 Travel Assistance & Customer Support"
-        description="Get in touch with FlyingLyte. Call +91 9667455591 or email info@flyinglyte.com for queries regarding flight bookings, hotel reservations, or custom tour itineraries."
+        title="Contact Us - Customer Support & Travel Bookings"
+        description="Get in touch with FlyingLyte for flight bookings, hotel reservations, and custom holiday packages. 24/7 travel assistance via phone, email, and WhatsApp."
         canonical="https://www.flyinglyte.com/contact"
       />
       <div className="max-w-6xl mx-auto">
@@ -216,7 +216,7 @@ const ContactPage = () => {
               <div>
                 <h4 className="text-white font-semibold">Office</h4>
                 <p className="text-(--text-muted)">
-                  Gagan Vihar, New Delhi, India
+                  316, Basement, Gagan Vihar, Near Preet Vihar Metro, Delhi, 110051
                 </p>
               </div>
             </motion.div>

@@ -28,6 +28,128 @@ const sanitizeFareRuleHtml = (html) => {
     .replace(/javascript:/gi, "");
 };
 
+
+const formatDuration = (value) => {
+  if (!value) return null;
+
+  const match = String(value).match(
+    /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?$/
+  );
+
+  if (!match) return value;
+
+  const days = Number(match[1] || 0);
+  const hours = Number(match[2] || 0);
+  const minutes = Number(match[3] || 0);
+
+  const parts = [];
+
+  if (days) {
+    parts.push(
+      `${days} ${days === 1 ? "day" : "days"}`
+    );
+  }
+
+  if (hours) {
+    parts.push(
+      `${hours} ${hours === 1 ? "hour" : "hours"}`
+    );
+  }
+
+  if (minutes) {
+    parts.push(
+      `${minutes} ${minutes === 1 ? "minute" : "minutes"}`
+    );
+  }
+
+  return parts.length
+    ? parts.join(" ")
+    : value;
+};
+
+
+const getPenaltyWindow = (rule) => {
+  const from = formatDuration(
+    rule?.FromDuration
+  );
+
+  const to = formatDuration(
+    rule?.ToDuration
+  );
+
+  if (from && to) {
+    return `${from} to ${to} before departure`;
+  }
+
+  if (from && !to) {
+    return `${from} or more before departure`;
+  }
+
+  if (!from && to) {
+    return `Up to ${to} before departure`;
+  }
+
+  return rule?.DepartureType ||
+    "Before departure";
+};
+
+
+const getRuleTypeLabel = (type) => {
+  if (Number(type) === 0) {
+    return "Cancellation Charges";
+  }
+
+  if (Number(type) === 1) {
+    return "Date Change / Rescheduling Charges";
+  }
+
+  return `Rule Type ${type ?? "-"}`;
+};
+
+
+const getPassengerTypeLabel = (type) => {
+  if (Number(type) === 1) {
+    return "Adult";
+  }
+
+  if (Number(type) === 2) {
+    return "Child";
+  }
+
+  if (Number(type) === 3) {
+    return "Infant";
+  }
+
+  return `Passenger ${type ?? "-"}`;
+};
+
+
+const formatDateTime = (value) => {
+  if (
+    !value ||
+    String(value).startsWith("0001-01-01")
+  ) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString(
+    "en-IN",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  );
+};
+
 const FareRule = () => {
   const navigate = useNavigate();
 
@@ -111,9 +233,9 @@ const FareRule = () => {
         if (isMounted) {
           setError(
             err?.response?.data?.message ||
-              err?.response?.data?.error ||
-              err?.message ||
-              "Unable to load fare rules.",
+            err?.response?.data?.error ||
+            err?.message ||
+            "Unable to load fare rules.",
           );
         }
       } finally {
@@ -237,11 +359,10 @@ const FareRule = () => {
                 </p>
 
                 <span
-                  className={`inline-block mt-2 text-xs px-2 py-1 rounded ${
-                    selectedFlight?.IsLCC
+                  className={`inline-block mt-2 text-xs px-2 py-1 rounded ${selectedFlight?.IsLCC
                       ? "bg-yellow-500/20 text-yellow-400"
                       : "bg-green-500/20 text-green-400"
-                  }`}
+                    }`}
                 >
                   {selectedFlight?.IsLCC ? "LCC" : "Full Service"}
                 </span>
@@ -307,13 +428,417 @@ const FareRule = () => {
                   </button>
 
                   {openRule === index && (
-                    <div className="px-5 pb-5 pt-3 text-sm text-(--text-muted) leading-relaxed border-t border-(--border-soft)">
+                    <div
+                      className="
+      border-t border-(--border-soft)
+      px-4 sm:px-5
+      py-5
+      space-y-5
+    "
+                    >
+                      {/* ==============================
+        BASIC FARE INFORMATION
+    ============================== */}
+
                       <div
-                        className="prose prose-sm max-w-none prose-invert"
-                        dangerouslySetInnerHTML={{
-                          __html: sanitizeFareRuleHtml(rule?.FareRuleDetail),
-                        }}
-                      />
+                        className="
+        grid
+        grid-cols-1
+        sm:grid-cols-2
+        lg:grid-cols-4
+        gap-3
+      "
+                      >
+                        <div
+                          className="
+          rounded-xl
+          border border-(--border-soft)
+          bg-(--bg-main)
+          p-4
+        "
+                        >
+                          <p className="text-xs text-(--text-muted)">
+                            Fare Basis
+                          </p>
+
+                          <p className="mt-1 font-semibold text-(--gold-soft)">
+                            {rule?.FareBasisCode || "Not provided"}
+                          </p>
+                        </div>
+
+
+                        <div
+                          className="
+          rounded-xl
+          border border-(--border-soft)
+          bg-(--bg-main)
+          p-4
+        "
+                        >
+                          <p className="text-xs text-(--text-muted)">
+                            Fare Type
+                          </p>
+
+                          <div className="mt-2">
+                            <span
+                              className={`
+              inline-flex
+              items-center
+              rounded-full
+              px-3 py-1
+              text-xs
+              font-semibold
+              ${rule?.NonRefundable
+                                  ? "bg-red-500/15 text-red-400 border border-red-500/20"
+                                  : "bg-green-500/15 text-green-400 border border-green-500/20"
+                                }
+            `}
+                            >
+                              {rule?.NonRefundable
+                                ? "Non-Refundable"
+                                : "Refundable"}
+                            </span>
+                          </div>
+                        </div>
+
+
+                        <div
+                          className="
+          rounded-xl
+          border border-(--border-soft)
+          bg-(--bg-main)
+          p-4
+        "
+                        >
+                          <p className="text-xs text-(--text-muted)">
+                            Route
+                          </p>
+
+                          <p className="mt-1 font-semibold text-(--text-main)">
+                            {rule?.Origin || "-"}
+                            {" → "}
+                            {rule?.Destination || "-"}
+                          </p>
+                        </div>
+
+
+                        <div
+                          className="
+          rounded-xl
+          border border-(--border-soft)
+          bg-(--bg-main)
+          p-4
+        "
+                        >
+                          <p className="text-xs text-(--text-muted)">
+                            Departure
+                          </p>
+
+                          <p className="mt-1 text-sm font-medium text-(--text-main)">
+                            {formatDateTime(
+                              rule?.DepartureTime
+                            ) || "Not provided"}
+                          </p>
+                        </div>
+                      </div>
+
+
+                      {/* ==============================
+        MINI FARE RULES
+    ============================== */}
+
+                      {Array.isArray(
+                        rule?.MiniFareRules?.Rules
+                      ) &&
+                        rule.MiniFareRules.Rules.length >
+                        0 ? (
+                        <div className="space-y-3">
+                          <div>
+                            <h3 className="font-semibold text-(--gold-main)">
+                              Cancellation & Change Charges
+                            </h3>
+
+                            <p className="mt-1 text-xs text-(--text-muted)">
+                              Charges may vary depending on
+                              how close the request is to
+                              departure.
+                            </p>
+                          </div>
+
+
+                          <div
+                            className="
+            grid
+            grid-cols-1
+            md:grid-cols-2
+            gap-3
+          "
+                          >
+                            {rule.MiniFareRules.Rules.map(
+                              (miniRule, ruleIndex) => {
+                                const penalties =
+                                  Array.isArray(
+                                    miniRule?.PaxPenalties
+                                  )
+                                    ? miniRule.PaxPenalties
+                                    : [];
+
+                                const isCancellation =
+                                  Number(miniRule?.Type) ===
+                                  0;
+
+                                return (
+                                  <div
+                                    key={`${miniRule?.Type}-${ruleIndex}`}
+                                    className="
+                    rounded-xl
+                    border border-(--border-soft)
+                    bg-(--bg-main)
+                    p-4
+                    space-y-3
+                  "
+                                  >
+                                    <div
+                                      className="
+                      flex
+                      flex-col
+                      sm:flex-row
+                      sm:items-center
+                      sm:justify-between
+                      gap-2
+                    "
+                                    >
+                                      <span
+                                        className={`
+                        w-fit
+                        rounded-full
+                        px-3 py-1
+                        text-xs
+                        font-semibold
+                        ${isCancellation
+                                            ? "bg-red-500/15 text-red-400 border border-red-500/20"
+                                            : "bg-blue-500/15 text-blue-400 border border-blue-500/20"
+                                          }
+                      `}
+                                      >
+                                        {getRuleTypeLabel(
+                                          miniRule?.Type
+                                        )}
+                                      </span>
+
+                                      <span className="text-xs text-(--text-muted)">
+                                        {miniRule?.DepartureType ||
+                                          "Before departure"}
+                                      </span>
+                                    </div>
+
+
+                                    <div>
+                                      <p className="text-xs text-(--text-muted)">
+                                        Time Window
+                                      </p>
+
+                                      <p className="mt-1 text-sm font-medium text-(--text-main)">
+                                        {getPenaltyWindow(
+                                          miniRule
+                                        )}
+                                      </p>
+                                    </div>
+
+
+                                    <div className="space-y-2">
+                                      {penalties.length >
+                                        0 ? (
+                                        penalties.map(
+                                          (
+                                            penalty,
+                                            penaltyIndex
+                                          ) => (
+                                            <div
+                                              key={
+                                                penaltyIndex
+                                              }
+                                              className="
+                              flex
+                              items-center
+                              justify-between
+                              gap-3
+                              rounded-lg
+                              border border-(--border-soft)
+                              px-3 py-2
+                            "
+                                            >
+                                              <div>
+                                                <p className="text-xs text-(--text-muted)">
+                                                  {
+                                                    getPassengerTypeLabel(
+                                                      penalty?.PassengerType
+                                                    )
+                                                  }
+                                                </p>
+
+                                                <p className="text-xs text-(--text-muted)">
+                                                  Airline fee
+                                                </p>
+                                              </div>
+
+                                              <p className="font-bold text-(--gold-soft) whitespace-nowrap">
+                                                {penalty?.Currency ||
+                                                  "INR"}{" "}
+                                                {Number(
+                                                  penalty?.AirlineFee ||
+                                                  0
+                                                ).toLocaleString(
+                                                  "en-IN"
+                                                )}
+                                              </p>
+                                            </div>
+                                          )
+                                        )
+                                      ) : (
+                                        <p className="text-sm text-(--text-muted)">
+                                          No penalty amount
+                                          provided.
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className="
+          rounded-xl
+          border border-(--border-soft)
+          bg-(--bg-main)
+          p-4
+        "
+                        >
+                          <p className="text-sm text-(--text-muted)">
+                            Detailed cancellation or change
+                            charges were not provided by the
+                            airline.
+                          </p>
+                        </div>
+                      )}
+
+
+                      {/* ==============================
+        FARE INCLUSIONS
+    ============================== */}
+
+                      {Array.isArray(
+                        rule?.FareInclusions
+                      ) &&
+                        rule.FareInclusions.length > 0 && (
+                          <div>
+                            <h3 className="font-semibold text-(--gold-main)">
+                              Fare Inclusions
+                            </h3>
+
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {rule.FareInclusions.map(
+                                (item, inclusionIndex) => (
+                                  <span
+                                    key={inclusionIndex}
+                                    className="
+                  rounded-full
+                  border border-(--border-soft)
+                  bg-(--bg-main)
+                  px-3 py-1.5
+                  text-xs
+                  text-(--text-main)
+                "
+                                  >
+                                    {String(item)}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+
+                      {/* ==============================
+        RESTRICTION
+    ============================== */}
+
+                      {rule?.FareRestriction && (
+                        <div
+                          className="
+          rounded-xl
+          border border-yellow-500/20
+          bg-yellow-500/5
+          p-4
+        "
+                        >
+                          <p className="text-xs font-semibold text-(--gold-main)">
+                            Fare Restriction
+                          </p>
+
+                          <p className="mt-1 text-sm text-(--text-main)">
+                            {String(
+                              rule.FareRestriction
+                            )}
+                          </p>
+                        </div>
+                      )}
+
+
+                      {/* ==============================
+        ADDITIONAL DETAILS
+    ============================== */}
+
+                      {rule?.FareRuleDetail && (
+                        <div>
+                          <h3 className="font-semibold text-(--gold-main)">
+                            Additional Fare Details
+                          </h3>
+
+                          <div
+                            className="
+            mt-2
+            rounded-xl
+            border border-(--border-soft)
+            bg-(--bg-main)
+            p-4
+            text-sm
+            text-(--text-muted)
+            leading-relaxed
+            prose prose-sm
+            max-w-none
+            prose-invert
+          "
+                            dangerouslySetInnerHTML={{
+                              __html:
+                                sanitizeFareRuleHtml(
+                                  rule?.FareRuleDetail
+                                ),
+                            }}
+                          />
+                        </div>
+                      )}
+
+
+                      <div
+                        className="
+        rounded-xl
+        border border-(--border-soft)
+        bg-(--bg-main)
+        px-4 py-3
+      "
+                      >
+                        <p className="text-xs text-(--text-muted)">
+                          Airline fare rules and penalties
+                          can change until the booking is
+                          ticketed. Final charges are subject
+                          to the airline's applicable fare
+                          conditions.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -327,7 +852,7 @@ const FareRule = () => {
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <button
             type="button"
-            onClick={() => navigate("/flights")}
+            onClick={() => navigate("/flights/results")}
             className="w-full md:w-auto px-6 py-3 rounded-xl font-semibold border border-(--border-soft) text-(--text-main)"
           >
             Back to Results

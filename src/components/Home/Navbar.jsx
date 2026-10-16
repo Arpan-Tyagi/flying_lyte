@@ -69,18 +69,18 @@ const Navbar = () => {
     e.preventDefault();
 
     // HOTELS
-    if (item.name === "Hotels") {
-      setMenuOpen(false);
-      setProfileOpen(false);
+    // if (item.name === "Hotels") {
+    //   setMenuOpen(false);
+    //   setProfileOpen(false);
 
-      navigate("/", {
-        state: {
-          searchTab: "hotels",
-        },
-      });
+    //   navigate("/", {
+    //     state: {
+    //       searchTab: "hotels",
+    //     },
+    //   });
 
-      return;
-    }
+    //   return;
+    // }
 
     // HOME
     if (item.name === "Home") {
@@ -98,25 +98,36 @@ const Navbar = () => {
     handleReloadNavigate(item.path);
   };
 
-  const isActive = (path) => {
-    // Navbar Hotels se Home + Hotels tab open hua hai
-    if (
-      path === "/hotels" &&
-      location.pathname === "/" &&
-      location.state?.searchTab === "hotels"
-    ) {
-      return true;
-    }
+  // const isActive = (path) => {
+  //   // Navbar Hotels se Home + Hotels tab open hua hai
+  //   if (
+  //     path === "/hotels" &&
+  //     location.pathname === "/" &&
+  //     location.state?.searchTab === "hotels"
+  //   ) {
+  //     return true;
+  //   }
 
-    // Home tab
+  //   // Home tab
+  //   if (path === "/") {
+  //     return (
+  //       location.pathname === "/" && location.state?.searchTab !== "hotels"
+  //     );
+  //   }
+
+  //   return (
+  //     location.pathname === path || location.pathname.startsWith(`${path}/`)
+  //   );
+  // };
+
+  const isActive = (path) => {
     if (path === "/") {
-      return (
-        location.pathname === "/" && location.state?.searchTab !== "hotels"
-      );
+      return location.pathname === "/";
     }
 
     return (
-      location.pathname === path || location.pathname.startsWith(`${path}/`)
+      location.pathname === path ||
+      location.pathname.startsWith(`${path}/`)
     );
   };
 
@@ -126,13 +137,13 @@ const Navbar = () => {
 
   return (
     <nav className="fixed inset-x-0 top-2 md:top-4 z-50 transition-all duration-300">
-      <div className="mx-auto w-[94%] max-w-7xl">
+      <div className="mx-auto w-[calc(100%-16px)] max-w-7xl sm:w-[94%]">
         <div
-          className={`relative overflow-visible rounded-3xl md:rounded-full border px-4 py-1.5 md:px-6 md:py-2 backdrop-blur-2xl transition-all duration-300 ${navWrapperStyle}`}
+          className={`relative overflow-visible rounded-3xl border px-3 py-1.5 backdrop-blur-2xl transition-all duration-300 sm:px-4 md:rounded-full md:px-6 md:py-2 ${navWrapperStyle}`}
         >
           <div className="pointer-events-none absolute inset-0 rounded-[28px] md:rounded-full bg-[radial-gradient(circle_at_15%_20%,rgba(230,179,92,0.18),transparent_28%),radial-gradient(circle_at_90%_10%,rgba(255,255,255,0.08),transparent_24%)]" />
 
-          <div className="relative flex items-center justify-between gap-4">
+          <div className="relative flex min-w-0 items-center justify-between gap-2 sm:gap-4">
             {/* Logo */}
             <button
               type="button"
@@ -143,7 +154,7 @@ const Navbar = () => {
               <img
                 src={logo}
                 alt="FlyingLyte"
-                className="h-10 w-auto max-w-38.75 select-none object-contain drop-shadow-[0_10px_20px_rgba(230,179,92,0.18)] transition duration-300 group-hover:scale-[1.03] md:h-12 md:max-w-52.5"
+                className="h-9 w-auto max-w-[145px] select-none object-contain drop-shadow-[0_10px_20px_rgba(230,179,92,0.18)] transition duration-300 group-hover:scale-[1.03] sm:h-10 sm:max-w-[165px] md:h-12 md:max-w-[210px]"
                 loading="lazy" />
             </button>
 
@@ -238,7 +249,7 @@ const Navbar = () => {
               type="button"
               aria-label="Toggle menu"
               onClick={() => setMenuOpen((prev) => !prev)}
-              className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-[#E6B35C]/15 hover:text-[#E6B35C] lg:hidden"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-[#E6B35C]/15 hover:text-[#E6B35C] lg:hidden"
             >
               {menuOpen ? <HiX size={26} /> : <HiMenu size={26} />}
             </button>
@@ -289,14 +300,19 @@ const Navbar = () => {
                 <button
                   key={item.path}
                   type="button"
+                  // onClick={() => {
+                  //   if (item.name === "Hotels") {
+                  //     handleReloadNavigate("/", {
+                  //       searchTab: "hotels",
+                  //     });
+                  //   } else {
+                  //     handleReloadNavigate(item.path);
+                  //   }
+                  // }}
+
+
                   onClick={() => {
-                    if (item.name === "Hotels") {
-                      handleReloadNavigate("/", {
-                        searchTab: "hotels",
-                      });
-                    } else {
-                      handleReloadNavigate(item.path);
-                    }
+                    handleReloadNavigate(item.path);
                   }}
                   className={`group flex min-h-10 items-center justify-between rounded-xl border px-3.5 py-2 text-left text-[13px] font-semibold transition-all duration-200 ${isActive(item.path)
                     ? "border-[#E6B35C]/60 bg-[#E6B35C] text-black shadow-[0_6px_18px_rgba(230,179,92,0.18)]"

@@ -800,7 +800,7 @@ const HotelsForm = () => {
         hasNext: hotelResponse?.has_next,
       });
 
-      navigate("/hotels");
+      navigate("/hotels/results");
     } catch (err) {
       console.error("HOTEL SEARCH ERROR:", err?.response?.data || err);
 
@@ -828,7 +828,7 @@ const HotelsForm = () => {
   };
 
   return (
-    <div className="bg-(--bg-card) border border-(--border-soft) rounded-3xl shadow-2xl p-4 md:p-6 lg:p-8 space-y-6 backdrop-blur-md">
+    <div className="relative flex min-h-[210px] flex-col justify-center overflow-visible rounded-2xl border border-white/10 bg-[#07111c]/10 p-3 shadow-2xl backdrop-blur-none space-y-3 sm:min-h-[220px] sm:p-4 md:min-h-[235px] md:p-5">
       {errorMsg && (
         <div className="text-red-400 text-sm bg-red-900/20 border border-red-800 px-4 py-3 rounded-2xl text-center">
           {errorMsg}
@@ -837,10 +837,10 @@ const HotelsForm = () => {
 
       <form
         onSubmit={handleSearch}
-        className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end"
+        className="relative grid grid-cols-12 gap-2.5 overflow-visible sm:gap-3 md:gap-3 items-end"
       >
-        <div className="relative md:col-span-3 w-full" ref={cityRef}>
-          <label className="mb-1.5 block text-xs font-medium text-(--text-muted)">
+        <div className="relative z-40 col-span-12 min-w-0 w-full sm:col-span-6 md:col-span-3" ref={cityRef}>
+          <label className="mb-1.5 block text-xs font-medium text-white/75">
             City / Hotel
           </label>
 
@@ -848,6 +848,8 @@ const HotelsForm = () => {
             type="text"
             placeholder="Search city or hotel"
             value={cityInput}
+            autoComplete="off"
+            spellCheck={false}
 
             onFocus={() => {
               setDestinationOpen(true);
@@ -872,14 +874,14 @@ const HotelsForm = () => {
               setCitySuggestions(searchCities(value));
             }}
 
-            className="w-full h-12 px-4 rounded-2xl text-sm bg-(--bg-secondary) border border-(--border-soft) outline-none focus:border-(--gold-main) focus:ring-2 focus:ring-(--gold-main)/20 transition"
+            className="w-full h-11 px-3 rounded-xl text-sm text-white bg-white/[0.07] border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl outline-none placeholder:text-white/55 transition hover:border-white/30 focus:border-[#E6B35C]/70 focus:bg-white/[0.09] focus:ring-2 focus:ring-[#E6B35C]/15"
           />
 
           {destinationOpen &&
             (citySuggestions.length > 0 ||
               hotelSuggestions.length > 0 ||
               hotelSuggestionsLoading) && (
-              <div className="absolute top-full left-0 mt-2 w-full bg-(--bg-card) border border-(--border-soft) rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto p-1">
+              <div className="absolute left-0 top-full z-[200] mt-2 max-h-72 w-full overflow-y-auto overscroll-contain rounded-xl border border-white/15 bg-[#0C1520]/98 p-1.5 text-white shadow-[0_22px_60px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:min-w-[340px] md:min-w-[380px]">
 
                 {/* CITY SUGGESTIONS */}
                 {citySuggestions.length > 0 && (
@@ -1066,13 +1068,15 @@ const HotelsForm = () => {
             )}
         </div>
 
-        <div className="relative md:col-span-3 w-full" ref={nationalityRef}>
-          <label className="mb-1.5 block text-xs font-medium text-(--text-muted)">
+        <div className="relative z-30 col-span-12 min-w-0 w-full sm:col-span-6 md:col-span-3" ref={nationalityRef}>
+          <label className="mb-1 block text-xs font-medium text-white/75">
             Nationality
           </label>
 
           <input
             type="text"
+            autoComplete="off"
+            spellCheck={false}
             placeholder="Search nationality"
             value={nationalityInput}
             readOnly={isInternationalHotelSearch}
@@ -1120,8 +1124,7 @@ const HotelsForm = () => {
               }));
               setNationalitySuggestions(searchNationalities(value));
             }}
-            className={`w-full h-12 px-4 rounded-2xl text-sm bg-(--bg-secondary) border border-(--border-soft) outline-none focus:border-(--gold-main) focus:ring-2 focus:ring-(--gold-main)/20 transition ${isInternationalHotelSearch ? "cursor-not-allowed opacity-80" : ""
-              }`}
+            className={`w-full h-11 px-3 rounded-xl text-sm text-white bg-white/[0.07] border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl outline-none placeholder:text-white/55 transition hover:border-white/30 focus:border-[#E6B35C]/70 focus:bg-white/[0.09] focus:ring-2 focus:ring-[#E6B35C]/15 ${isInternationalHotelSearch ? "cursor-not-allowed opacity-70" : ""}`}
           />
 
           {isInternationalHotelSearch && (
@@ -1132,7 +1135,7 @@ const HotelsForm = () => {
           )}
 
           {nationalitySuggestions.length > 0 && (
-            <div className="absolute top-full left-0 mt-2 w-full bg-(--bg-card) border border-(--border-soft) rounded-2xl shadow-2xl z-50 max-h-64 overflow-y-auto p-1">
+            <div className="absolute left-0 top-full z-[200] mt-2 max-h-64 w-full overflow-y-auto overscroll-contain rounded-xl border border-white/15 bg-[#0C1520]/98 p-1.5 text-white shadow-[0_22px_60px_rgba(0,0,0,0.75)] backdrop-blur-xl">
               {nationalitySuggestions.map((country) => (
                 <button
                   type="button"
@@ -1171,9 +1174,9 @@ const HotelsForm = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:col-span-4 w-full">
+        <div className="col-span-12 grid grid-cols-2 gap-2 min-w-0 md:col-span-4 md:gap-3 w-full">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-(--text-muted)">
+            <label className="mb-1 block text-xs font-medium text-white/75">
               Check-in
             </label>
 
@@ -1187,12 +1190,12 @@ const HotelsForm = () => {
                   checkIn: e.target.value,
                 }))
               }
-              className="hotel-date-input w-full h-12 px-4 pr-10 rounded-2xl text-sm bg-(--bg-secondary) border border-(--border-soft) outline-none focus:border-(--gold-main) focus:ring-2 focus:ring-(--gold-main)/20 transition"
+              className="hotel-date-input w-full min-w-0 h-11 px-3 pr-10 rounded-xl text-sm text-white bg-white/[0.07] border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl outline-none transition hover:border-white/30 focus:border-[#E6B35C]/70 focus:bg-white/[0.09] focus:ring-2 focus:ring-[#E6B35C]/15"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-(--text-muted)">
+            <label className="mb-1 block text-xs font-medium text-white/75">
               Check-out
             </label>
 
@@ -1206,20 +1209,20 @@ const HotelsForm = () => {
                   checkOut: e.target.value,
                 }))
               }
-              className="hotel-date-input w-full h-12 px-4 pr-10 rounded-2xl text-sm bg-(--bg-secondary) border border-(--border-soft) outline-none focus:border-(--gold-main) focus:ring-2 focus:ring-(--gold-main)/20 transition"
+              className="hotel-date-input w-full min-w-0 h-11 px-3 pr-10 rounded-xl text-sm text-white bg-white/[0.07] border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl outline-none transition hover:border-white/30 focus:border-[#E6B35C]/70 focus:bg-white/[0.09] focus:ring-2 focus:ring-[#E6B35C]/15"
             />
           </div>
         </div>
 
-        <div className="relative md:col-span-2 w-full" ref={guestRef}>
-          <label className="mb-1.5 block text-xs font-medium text-(--text-muted)">
+        <div className="relative col-span-12 min-w-0 sm:col-span-6 md:col-span-2 w-full" ref={guestRef}>
+          <label className="mb-1 block text-xs font-medium text-white/75">
             Guests
           </label>
 
           <button
             type="button"
             onClick={() => setGuestOpen(true)}
-            className="w-full h-12 px-4 rounded-2xl text-sm bg-(--bg-secondary) border border-(--border-soft) text-left flex items-center justify-between gap-2 hover:border-(--gold-main) focus:ring-2 focus:ring-(--gold-main)/20 transition"
+            className="w-full h-11 px-3 rounded-xl text-sm text-white bg-white/[0.07] border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl text-left flex items-center justify-between gap-2 transition hover:border-[#E6B35C]/60 hover:bg-white/[0.09] focus:ring-2 focus:ring-[#E6B35C]/15"
           >
             <span className="truncate">
               {totalGuests} Guest{totalGuests > 1 && "s"} · {guests.rooms} Room
@@ -1232,15 +1235,15 @@ const HotelsForm = () => {
           {guestOpen && (
             <>
               <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                className="fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm"
                 onClick={() => setGuestOpen(false)}
               />
 
               <div
-                className="fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92vw] md:w-160 lg:w-180 h-[78vh] md:h-[62vh] rounded-2xl sm:rounded-3xl bg-(--bg-card) border border-(--border-soft) shadow-2xl overflow-hidden flex flex-col"
+                className="fixed z-[9999] left-1/2 top-1/2 flex w-[calc(100vw-24px)] max-w-2xl max-h-[calc(100svh-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#101721]/95 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:w-[calc(100vw-40px)] sm:rounded-3xl"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="shrink-0 bg-(--bg-card) border-b border-(--border-soft) p-4 sm:p-5">
+                <div className="shrink-0 border-b border-white/10 bg-[#101721]/95 p-3 sm:p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-(--text-main)">
@@ -1255,14 +1258,14 @@ const HotelsForm = () => {
                     <button
                       type="button"
                       onClick={() => setGuestOpen(false)}
-                      className="w-9 h-9 rounded-full bg-(--bg-secondary) border border-(--border-soft) flex items-center justify-center text-sm hover:border-(--gold-main) hover:text-(--gold-main) transition"
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-sm font-bold text-white/80 transition hover:border-[#E6B35C]/60 hover:bg-white/[0.10] hover:text-[#E6B35C]"
                     >
                       ✕
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mt-4">
-                    <div className="rounded-2xl bg-(--bg-secondary) border border-(--border-soft) p-3 text-center">
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 text-center">
                       <p className="text-[10px] uppercase tracking-wide text-(--text-muted)">
                         Adults
                       </p>
@@ -1271,7 +1274,7 @@ const HotelsForm = () => {
                       </p>
                     </div>
 
-                    <div className="rounded-2xl bg-(--bg-secondary) border border-(--border-soft) p-3 text-center">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 text-center">
                       <p className="text-[10px] uppercase tracking-wide text-(--text-muted)">
                         Children
                       </p>
@@ -1280,7 +1283,7 @@ const HotelsForm = () => {
                       </p>
                     </div>
 
-                    <div className="rounded-2xl bg-(--bg-secondary) border border-(--border-soft) p-3 text-center">
+                    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 text-center">
                       <p className="text-[10px] uppercase tracking-wide text-(--text-muted)">
                         Rooms
                       </p>
@@ -1291,11 +1294,11 @@ const HotelsForm = () => {
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+                <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
                   {rooms.map((room, roomIndex) => (
                     <div
                       key={roomIndex}
-                      className="rounded-3xl border border-(--border-soft) bg-(--bg-secondary) p-4 space-y-4"
+                      className="rounded-2xl border border-white/10 bg-white/[0.035] p-3 space-y-3 sm:p-4"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
@@ -1340,12 +1343,12 @@ const HotelsForm = () => {
                                   updateRoomValue(roomIndex, "adults", "dec")
                                 }
                                 disabled={room.adults <= 1}
-                                className="w-9 h-9 rounded-full border border-(--border-soft) bg-(--bg-secondary) flex items-center justify-center text-base font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:border-(--gold-main) hover:text-(--gold-main) transition"
+                                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-base font-bold text-white transition hover:border-[#E6B35C]/60 hover:bg-white/[0.10] hover:text-[#E6B35C] disabled:cursor-not-allowed disabled:text-white/35 disabled:opacity-60"
                               >
                                 -
                               </button>
 
-                              <span className="min-w-6 text-center font-bold">
+                              <span className="min-w-6 text-center font-bold text-white">
                                 {room.adults}
                               </span>
 
@@ -1355,7 +1358,7 @@ const HotelsForm = () => {
                                   updateRoomValue(roomIndex, "adults", "inc")
                                 }
                                 disabled={room.adults >= MAX_ADULTS_PER_ROOM}
-                                className="w-9 h-9 rounded-full border border-(--border-soft) bg-(--bg-secondary) flex items-center justify-center text-base font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:border-(--gold-main) hover:text-(--gold-main) transition"
+                                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-base font-bold text-white transition hover:border-[#E6B35C]/60 hover:bg-white/[0.10] hover:text-[#E6B35C] disabled:cursor-not-allowed disabled:text-white/35 disabled:opacity-60"
                               >
                                 +
                               </button>
@@ -1381,12 +1384,12 @@ const HotelsForm = () => {
                                   updateRoomValue(roomIndex, "children", "dec")
                                 }
                                 disabled={room.children <= 0}
-                                className="w-9 h-9 rounded-full border border-(--border-soft) bg-(--bg-secondary) flex items-center justify-center text-base font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:border-(--gold-main) hover:text-(--gold-main) transition"
+                                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-base font-bold text-white transition hover:border-[#E6B35C]/60 hover:bg-white/[0.10] hover:text-[#E6B35C] disabled:cursor-not-allowed disabled:text-white/35 disabled:opacity-60"
                               >
                                 -
                               </button>
 
-                              <span className="min-w-6 text-center font-bold">
+                              <span className="min-w-6 text-center font-bold text-white">
                                 {room.children}
                               </span>
 
@@ -1398,7 +1401,7 @@ const HotelsForm = () => {
                                 disabled={
                                   room.children >= MAX_CHILDREN_PER_ROOM
                                 }
-                                className="w-9 h-9 rounded-full border border-(--border-soft) bg-(--bg-secondary) flex items-center justify-center text-base font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:border-(--gold-main) hover:text-(--gold-main) transition"
+                                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-base font-bold text-white transition hover:border-[#E6B35C]/60 hover:bg-white/[0.10] hover:text-[#E6B35C] disabled:cursor-not-allowed disabled:text-white/35 disabled:opacity-60"
                               >
                                 +
                               </button>
@@ -1434,7 +1437,7 @@ const HotelsForm = () => {
                                       )
                                     }
                                     placeholder="1-12"
-                                    className="w-full mt-1 h-10 px-3 rounded-xl text-sm bg-(--bg-secondary) border border-(--border-soft) outline-none focus:border-(--gold-main) focus:ring-2 focus:ring-(--gold-main)/20 transition"
+                                    className="w-full mt-1 h-10 px-3 rounded-xl text-sm text-white bg-white/[0.06] border border-white/15 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition placeholder:text-white/40 focus:border-[#E6B35C]/70 focus:bg-white/[0.09] focus:ring-2 focus:ring-[#E6B35C]/15"
                                   />
                                 </div>
                               ),
@@ -1446,13 +1449,13 @@ const HotelsForm = () => {
                   ))}
                 </div>
 
-                <div className="shrink-0 bg-(--bg-card) border-t border-(--border-soft) p-4 sm:p-5">
+                <div className="shrink-0 border-t border-white/10 bg-[#101721]/95 p-3 sm:p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={addRoom}
                       disabled={rooms.length >= MAX_ROOMS}
-                      className="w-full py-3 rounded-2xl border border-(--border-soft) bg-(--bg-secondary) text-sm font-semibold hover:border-(--gold-main) hover:text-(--gold-main) disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      className="w-full rounded-xl border border-white/15 bg-white/[0.06] py-3 text-sm font-semibold text-white/90 transition hover:border-[#E6B35C]/60 hover:bg-white/[0.10] hover:text-[#E6B35C] disabled:cursor-not-allowed disabled:text-white/35 disabled:opacity-50"
                     >
                       + Add Room
                     </button>
@@ -1471,11 +1474,11 @@ const HotelsForm = () => {
           )}
         </div>
 
-        <div className="md:col-span-12 flex justify-center pt-2">
+        <div className="col-span-12 flex justify-center pt-1 md:col-span-12">
           <button
             type="submit"
             disabled={loading}
-            className="w-full md:w-auto min-w-[190px] px-10 py-3.5 rounded-2xl font-bold text-black bg-linear-to-r from-start to-end hover:scale-[1.02] active:scale-95 transition disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+            className="w-full sm:w-52 md:w-60 xl:w-64 px-4 py-2.5 rounded-xl font-semibold text-sm text-black bg-linear-to-r from-start to-end transition hover:brightness-105 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>

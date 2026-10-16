@@ -3,16 +3,19 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/Home/Navbar";
 import Footer from "./components/Home/Footer/Footer";
 import WhatsAppFloating from "./components/WhatsAppFloating";
+import Chatbot from "./components/chatbot/Chatbot";
 
-// Core Homepage (eagerly loaded for instant first paint)
+// Critical / Above-fold Route
 import Home from "./Pages/Home";
 
-// Lazy-loaded routes for code-splitting and Core Web Vitals optimization
+// Lazy-loaded routes for code-splitting & optimal performance
+const FlightsPage = lazy(() => import("./Pages/FlightsPage"));
+const HotelsPage = lazy(() => import("./Pages/HotelsPage"));
 const Register = lazy(() => import("./Pages/Register"));
 const LoginPage = lazy(() => import("./Pages/LoginPage"));
-const MyBookings = lazy(() => import("./components/Home/Mybookings"));
-const AboutUs = lazy(() => import("./components/Home/AboutUs"));
 const ContactPage = lazy(() => import("./Pages/ContactPage"));
+const AboutUs = lazy(() => import("./components/Home/AboutUs"));
+const MyBookings = lazy(() => import("./components/Home/Mybookings"));
 const Blogs = lazy(() => import("./Pages/Blogs"));
 const BlogDetails = lazy(() => import("./Pages/BlogDetails"));
 const TermsConditions = lazy(() => import("./Pages/TermsConditions"));
@@ -21,8 +24,8 @@ const RefundPolicy = lazy(() => import("./Pages/RefundPolicy"));
 const CancellationPolicyPage = lazy(() => import("./Pages/CancellationPolicyPage"));
 
 // Packages
-const PackageDetails = lazy(() => import("./modules/packages/PackageDetail"));
 const PackageSection = lazy(() => import("./modules/packages/PackageSection"));
+const PackageDetails = lazy(() => import("./modules/packages/PackageDetail"));
 const PackageBookingSuccess = lazy(() => import("./modules/packages/PackageBookingSuccess"));
 
 // Hotels
@@ -49,9 +52,12 @@ const BookingSuccess = lazy(() => import("./modules/flights/pages/BookingSuccess
 const FlightBookingDetails = lazy(() => import("./modules/flights/pages/FlightBookingDetails"));
 const FlightPaymentSuccess = lazy(() => import("./modules/flights/pages/FlightPaymentSuccess"));
 
+// Minimal themed fallback loader
 const PageLoader = () => (
   <div className="min-h-[60vh] flex items-center justify-center bg-(--bg-main)">
-    <div className="w-10 h-10 rounded-full border-2 border-(--gold-main) border-t-transparent animate-spin" />
+    <div className="relative w-12 h-12">
+      <div className="absolute inset-0 rounded-full border-3 border-white/10 border-t-(--gold-main) animate-spin" />
+    </div>
   </div>
 );
 
@@ -95,33 +101,9 @@ const App = () => {
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/cancellation" element={<CancellationPolicyPage />} />
 
-          <Route path="/packages" element={<PackageSection limit={8} />} />
-          <Route path="/packages/:slug" element={<PackageDetails />} />
-          <Route
-            path="/package_booking_success/:bookingId"
-            element={<PackageBookingSuccess />}
-          />
-
-          {/* Hotel Routes */}
-          <Route path="/hotels" element={<HotelResults />} />
-          <Route path="/hotels/:id" element={<HotelDetails />} />
-          <Route path="/prebook" element={<PrebookLoader />} />
-          <Route path="/hotel-booking" element={<HotelBooking />} />
-          <Route path="/hotel-review-booking" element={<HotelReviewBooking />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/booking-details/:bookingId" element={<HotelVoucher />} />
-          <Route path="/hotel-invoice/:bookingId" element={<HotelInvoice />} />
-          <Route
-            path="/hotel-booking-success"
-            element={<HotelBookingSuccess />}
-          />
-          <Route
-            path="/hotel-booking-details/:bookingId"
-            element={<HotelBookingDetails />}
-          />
-
           {/* Flights */}
-          <Route path="/flights" element={<FlightsResults />} />
+          <Route path="/flights" element={<FlightsPage />} />
+          <Route path="/flights/results" element={<FlightsResults />} />
           <Route path="/fare-rule" element={<FareRule />} />
           <Route path="/fare-quote" element={<FareQuote />} />
           <Route path="/ssr" element={<SSRPage />} />
@@ -141,7 +123,34 @@ const App = () => {
             element={<FlightPaymentSuccess />}
           />
 
-          {/* 404 Fallback */}
+          {/* Hotels */}
+          <Route path="/hotels" element={<HotelsPage />} />
+          <Route path="/hotels/results" element={<HotelResults />} />
+          <Route path="/hotels/:id" element={<HotelDetails />} />
+          <Route path="/prebook" element={<PrebookLoader />} />
+          <Route path="/hotel-booking" element={<HotelBooking />} />
+          <Route path="/hotel-review-booking" element={<HotelReviewBooking />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/booking-details/:bookingId" element={<HotelVoucher />} />
+          <Route path="/hotel-invoice/:bookingId" element={<HotelInvoice />} />
+          <Route
+            path="/hotel-booking-success"
+            element={<HotelBookingSuccess />}
+          />
+          <Route
+            path="/hotel-booking-details/:bookingId"
+            element={<HotelBookingDetails />}
+          />
+
+          {/* Packages */}
+          <Route path="/packages" element={<PackageSection limit={8} />} />
+          <Route path="/packages/:slug" element={<PackageDetails />} />
+          <Route
+            path="/package_booking_success/:bookingId"
+            element={<PackageBookingSuccess />}
+          />
+
+          {/* 404 Page */}
           <Route
             path="*"
             element={<h1 className="text-center mt-20 text-white">404 - Page Not Found</h1>}
@@ -150,6 +159,7 @@ const App = () => {
       </Suspense>
 
       <WhatsAppFloating />
+      <Chatbot />
       <Footer />
     </main>
   );

@@ -89,3 +89,10 @@
 .hotel-date-input::-webkit-calendar-picker-indicator:hover {
   transform: translateY(-50%) scale(1.08);
 }
+.custom-date-input::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+input[type="number"] {
+  color-scheme: dark;
+}

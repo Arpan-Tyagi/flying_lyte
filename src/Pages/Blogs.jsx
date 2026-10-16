@@ -55,22 +55,22 @@ const Blogs = () => {
 
       <div className="max-w-7xl mx-auto px-4">
         <section className="text-center mb-14">
-          <p className="font-body text-sm md:text-base tracking-[0.3em] uppercase text-[var(--gold-soft)]">
+          <p className="text-xs md:text-sm font-semibold tracking-[0.28em] uppercase text-[var(--gold-soft)]">
             FlyingLyte Travel Blog
           </p>
 
-          <h1 className="mt-4 font-heading text-4xl md:text-7xl text-[var(--gold-main)] leading-tight">
+          <h1 className="mt-4 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-[var(--gold-main)] leading-tight">
             Travel Blogs, Guides & Tips
           </h1>
 
-          <p className="mt-5 max-w-3xl mx-auto font-body text-lg leading-8 text-[var(--text-muted)]">
+          <p className="mt-5 max-w-3xl mx-auto text-base md:text-lg leading-8 text-[var(--text-muted)]">
             Explore helpful travel blogs from FlyingLyte, including destination
             guides, hotel booking tips, flight booking advice, festival travel
             updates, honeymoon ideas, group tour guides, and smart travel
             planning suggestions for Indian travelers.
           </p>
 
-          <p className="mt-4 max-w-3xl mx-auto font-body text-base leading-8 text-[var(--text-muted)]">
+          <p className="mt-4 max-w-3xl mx-auto text-base leading-8 text-[var(--text-muted)]">
             Whether you are planning a family vacation, a romantic getaway, a
             budget-friendly trip, a luxury holiday, or an international tour,
             our travel stories and guides help you choose the right destination,

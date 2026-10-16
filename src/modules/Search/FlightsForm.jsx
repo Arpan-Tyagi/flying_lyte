@@ -1,666 +1,1554 @@
 import { useState, useRef, useEffect } from "react";
+//import { Plane, Sparkles, ArrowRight } from "lucide-react";
+
+import { Plane } from "lucide-react";
+
 import SearchScreenLoader from "./SearchScreenLoader";
+
 import { useNavigate } from "react-router-dom";
+
 import { publicApi } from "../../services/api";
+
 import airports from "../../data/airports";
+
 import { useFlightStore } from "../../store/flightStore";
 
+
+
 const FlightsForm = () => {
+
   const navigate = useNavigate();
 
-  const { setFlights, setPassengerCount, setSearchTravellers } =
-    useFlightStore();
+
+
+  const {
+    setFlights,
+    setPassengerCount,
+    setSearchTravellers,
+    setLastSearchPayload,
+  } = useFlightStore();
+
+
 
   const [tripType, setTripType] = useState("oneway");
+  const [showRoundTripNotice, setShowRoundTripNotice] = useState(false);
+
   const [travellersOpen, setTravellersOpen] = useState(false);
+
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
+
+
 
   const today = new Date().toLocaleDateString("en-CA");
 
+
+
   const [formData, setFormData] = useState({
+
     origin: "",
+
     destination: "",
+
     departure_date: "",
+
     return_date: "",
+
   });
+
+
 
   const [originInput, setOriginInput] = useState("");
+
   const [destinationInput, setDestinationInput] = useState("");
 
+
+
   const [originSuggestions, setOriginSuggestions] = useState([]);
+
   const [destinationSuggestions, setDestinationSuggestions] = useState([]);
 
+
+
   const originRef = useRef();
+
   const destinationRef = useRef();
+
   const travellerRef = useRef();
+
   const departureDateRef = useRef();
+
   const returnDateRef = useRef();
 
+
+
   const [travellers, setTravellers] = useState({
+
     adults: 1,
+
     children: 0,
+
     infants: 0,
+
     cabin: "Economy",
+
   });
 
+
+
   const cabinClassMap = {
+
     Economy: "2",
+
     "Premium Economy": "3",
+
     Business: "4",
+
     "First Class": "6",
+
   };
 
+
+
   useEffect(() => {
+
     const handleClickOutside = (e) => {
+
       if (originRef.current && !originRef.current.contains(e.target)) {
+
         setOriginSuggestions([]);
+
       }
+
+
 
       if (
+
         destinationRef.current &&
+
         !destinationRef.current.contains(e.target)
+
       ) {
+
         setDestinationSuggestions([]);
-        
+
+
+
       }
+
+
 
       if (travellerRef.current && !travellerRef.current.contains(e.target)) {
+
         setTravellersOpen(false);
+
       }
+
     };
 
+
+
     document.addEventListener("mousedown", handleClickOutside);
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
+
   }, []);
 
+
+
   const searchAirports = (query) => {
+
     if (!query) return [];
+
+
 
     const q = query.toLowerCase();
 
+
+
     return airports
+
       .filter(
+
         (airport) =>
+
           airport.city.toLowerCase().includes(q) ||
+
           airport.name.toLowerCase().includes(q) ||
+
           airport.country.toLowerCase().includes(q) ||
+
           airport.iata.toLowerCase().includes(q),
+
       )
+
       .slice(0, 8);
+
   };
+
+
 
   const swapAirports = () => {
+
     setFormData((prev) => ({
+
       ...prev,
+
       origin: prev.destination,
+
       destination: prev.origin,
+
     }));
 
+
+
     setOriginInput(destinationInput);
+
     setDestinationInput(originInput);
+
   };
+
+
 
   const validateSearch = () => {
+
     const totalTravellers =
+
       travellers.adults + travellers.children + travellers.infants;
 
+
+
     if (!formData.origin || !formData.destination) {
+
       return "Please select airports";
+
     }
+
+
 
     if (formData.origin === formData.destination) {
+
       return "Origin and destination cannot be same";
+
     }
+
+
 
     if (!formData.departure_date) {
+
       return "Please select departure date";
+
     }
+
+
 
     if (formData.departure_date < today) {
+
       return "Departure date cannot be less than today's date";
+
     }
+
+
 
     if (tripType === "roundtrip" && !formData.return_date) {
+
       return "Please select return date";
+
     }
+
+
 
     if (
+
       tripType === "roundtrip" &&
+
       formData.return_date &&
+
       formData.return_date < formData.departure_date
+
     ) {
+
       return "Return date cannot be before departure date";
+
     }
+
+
 
     if (travellers.adults < 1) {
+
       return "At least 1 adult passenger is required";
+
     }
+
+
 
     if (travellers.infants > travellers.adults) {
+
       return "Infants cannot be more than adults";
+
     }
+
+
 
     if (totalTravellers > 9) {
+
       return "Total passengers cannot be more than 9";
+
     }
 
+
+
     return "";
+
   };
 
+
+
   const handleSearch = async (e) => {
+
     e.preventDefault();
+
+
 
     const validationError = validateSearch();
 
+
+
     if (validationError) {
+
       setError(validationError);
+
       return;
+
     }
 
+
+
     setError("");
+
     setLoading(true);
+
+
 
     const payload = {
       origin: formData.origin,
       destination: formData.destination,
       departure_date: formData.departure_date,
       return_date: tripType === "roundtrip" ? formData.return_date : null,
+
+      trip_type: tripType,
+
       adults: travellers.adults,
       children: travellers.children,
       infants: travellers.infants,
       flight_cabin_class: cabinClassMap[travellers.cabin],
+
+      // pagination always starts from page 1
+      page: 1,
     };
 
+
+
     console.log("PAYLOAD:", payload);
+
     try {
+
       const response = await publicApi.post("/api/airlines/search/", payload);
 
+
+
       const data = response?.data;
+      const pagination = data?.pagination || null;
+
+
 
       console.log("SEARCH RAW RESPONSE:", data);
 
+
+
       const apiResponse =
+
         data?.data?.Response || data?.Response || data?.data || data;
 
+
+
       const errorCode = Number(apiResponse?.Error?.ErrorCode || 0);
+
       const errorMessage = apiResponse?.Error?.ErrorMessage || "";
 
+
+
       if (errorCode && errorCode !== 0) {
+
         setError(errorMessage || "Unable to search flights");
+
         return;
+
       }
 
+
+
       const rawResults =
+
         apiResponse?.Results ||
+
         data?.data?.Response?.Results ||
+
         data?.Response?.Results ||
+
         [];
 
+
+
       const results = Array.isArray(rawResults)
+
         ? rawResults.flat(Infinity).filter(Boolean)
+
         : [];
+
+
 
       console.log("PARSED FLIGHT RESULTS:", results);
 
+
+
       if (!results.length) {
+
         setError(errorMessage || "No flights found");
+
         return;
+
       }
 
+
+
       const traceId =
+
         apiResponse?.TraceId ||
+
         data?.data?.Response?.TraceId ||
+
         data?.Response?.TraceId ||
+
         null;
+
+
+      // ✅ save search for result-page refresh
+      setLastSearchPayload(payload);
+
+
+
 
       setFlights({
         flights: results,
         traceId,
+        pagination,
       });
 
+
+
       const totalTravellers =
+
         travellers.adults + travellers.children + travellers.infants;
+
+
 
       setPassengerCount(totalTravellers);
 
+
+
       if (typeof setSearchTravellers === "function") {
+
         setSearchTravellers(travellers);
+
       }
 
-      navigate("/flights");
+
+
+      navigate("/flights/results");
+
     } catch (err) {
+
       console.error("SEARCH ERROR:", err?.response?.data || err);
 
+
+
       const apiError =
+
         err?.response?.data?.data?.Response?.Error?.ErrorMessage ||
+
         err?.response?.data?.Response?.Error?.ErrorMessage ||
+
         err?.response?.data?.Error?.ErrorMessage ||
+
         err?.response?.data?.error ||
+
         err?.response?.data?.message;
 
+
+
       if (err.message === "Network Error") {
+
         setError("CORS error: Backend is blocking request");
+
       } else {
+
         setError(apiError || "Server error");
+
       }
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
+
+
   const updateCount = (type, value) => {
+
     setTravellers((prev) => {
+
       const updated = { ...prev };
+
+
 
       updated[type] = Math.max(0, prev[type] + value);
 
+
+
       if (updated.adults < 1) updated.adults = 1;
 
+
+
       if (updated.infants > updated.adults) {
+
         updated.infants = updated.adults;
+
       }
+
+
 
       const total = updated.adults + updated.children + updated.infants;
 
+
+
       if (total > 9) {
+
         setError("Total passengers cannot be more than 9");
+
         return prev;
+
       }
 
+
+
       setError("");
+
       return updated;
+
     });
+
   };
 
+
+
   const totalTravellers =
+
     travellers.adults + travellers.children + travellers.infants;
+
+
 
   return (
 
 
-    <>
-      {loading && <SearchScreenLoader type="flights" />}
-      <div className="bg-(--bg-card) border border-(--border-soft) rounded-2xl shadow-2xl p-4 md:p-8 space-y-6 backdrop-blur-md">
-        <div className="flex gap-2 text-xs md:text-sm font-semibold">
-          {["oneway", "roundtrip"].map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => {
-                setTripType(type);
 
-                if (type === "oneway") {
+
+
+    <>
+
+      {loading && <SearchScreenLoader type="flights" />}
+
+      {showRoundTripNotice && (
+        <div
+          className="
+      fixed inset-0 z-[9999]
+      flex items-center justify-center
+      bg-black/70
+      px-4
+      backdrop-blur-sm
+    "
+          onClick={() => setShowRoundTripNotice(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="
+        relative
+        w-full max-w-md
+        overflow-hidden
+        rounded-2xl
+        border border-[#E6B35C]/30
+        bg-[#07111c]
+        p-5 sm:p-6
+        text-white
+        shadow-[0_25px_80px_rgba(0,0,0,0.55)]
+      "
+          >
+            {/* Gold top accent */}
+            <div
+              className="
+          absolute left-0 top-0
+          h-1 w-full
+          bg-linear-to-r
+          from-[#F8D77D]
+          to-[#E6B35C]
+        "
+            />
+
+            <div className="flex items-start gap-4">
+              <div
+                className="
+            flex h-11 w-11
+            shrink-0
+            items-center justify-center
+            rounded-xl
+            bg-[#E6B35C]/15
+            text-xl
+          "
+              >
+                ✈
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p
+                  className="
+              text-xs font-semibold
+              uppercase
+              tracking-[0.18em]
+              text-[#E6B35C]
+            "
+                >
+                  FlyingLyte Update
+                </p>
+
+                <h3
+                  className="
+              mt-1
+              text-lg sm:text-xl
+              font-semibold
+              text-white
+            "
+                >
+                  Round Trip is under maintenance
+                </h3>
+
+                <p
+                  className="
+              mt-2
+              text-sm
+              leading-6
+              text-white/70
+            "
+                >
+                  Round Trip booking is currently unavailable while
+                  we improve the experience. Please use One Way
+                  booking for now.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowRoundTripNotice(false)}
+              className="
+          mt-5
+          w-full
+          rounded-xl
+          bg-linear-to-r
+          from-[#F8D77D]
+          to-[#E6B35C]
+          px-4 py-2.5
+          text-sm
+          font-semibold
+          text-black
+          transition
+          hover:opacity-90
+        "
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div
+
+        className="rounded-2xl border border-white/10 bg-[#07111c]/10 p-2.5 shadow-2xl backdrop-blur-none space-y-2.5 md:p-4"
+
+      >
+
+        {/* FLIGHT FORM HEADING */}
+
+        <div className="flex items-center gap-3">
+
+          <div
+
+            className="
+
+      flex
+
+      h-10
+
+      w-10
+
+      shrink-0
+
+      items-center
+
+      justify-center
+
+      rounded-xl
+
+      bg-linear-to-br
+
+      from-[#F8D77D]
+
+      to-[#E6B35C]
+
+      text-xl
+
+      text-black
+
+      shadow-[0_10px_30px_rgba(230,179,92,0.22)]
+
+    "
+
+          >
+
+            <Plane size={21} strokeWidth={2} />
+
+          </div>
+
+
+
+          <div className="text-left">
+
+            <p
+
+              className="
+
+        text-[10px]
+
+        font-semibold
+
+        uppercase
+
+        tracking-[0.28em]
+
+        text-[#E6B35C]
+
+        sm:text-xs
+
+      "
+
+            >
+
+              Flights Booking
+
+            </p>
+
+
+
+            <p className="mt-0.5 text-sm text-white/90 sm:text-base">
+
+              Your next journey starts here
+
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="flex gap-2 text-xs md:text-sm font-semibold">
+
+          {["oneway", "roundtrip"].map((type) => (
+
+            <button
+
+              key={type}
+
+              type="button"
+
+              // onClick={() => {
+
+              //   setTripType(type);
+
+
+
+              //   if (type === "oneway") {
+
+              //     setFormData((prev) => ({
+
+              //       ...prev,
+
+              //       return_date: "",
+
+              //     }));
+
+              //   }
+
+              // }}
+
+              onClick={() => {
+                // Round Trip temporarily disabled
+                if (type === "roundtrip") {
+                  setTripType("oneway");
+
                   setFormData((prev) => ({
                     ...prev,
                     return_date: "",
                   }));
+
+                  setShowRoundTripNotice(true);
+                  return;
                 }
+
+                // Existing One Way behaviour
+                setTripType("oneway");
+
+                setFormData((prev) => ({
+                  ...prev,
+                  return_date: "",
+                }));
               }}
-              className={`px-4 py-2 rounded-full transition ${tripType === type
+
+              className={`px-3.5 py-1.5 rounded-full transition ${tripType === type
+
                 ? "bg-linear-to-r from-start to-end text-black"
+
                 : "bg-(--bg-secondary)"
+
                 }`}
+
             >
+
               {type === "oneway" ? "One Way" : "Round Trip"}
+
             </button>
+
           ))}
+
         </div>
 
+
+
         {error && (
+
           <div className="text-red-400 text-xs bg-red-900/20 border border-red-800 p-2 rounded-lg">
+
             {error}
+
           </div>
+
         )}
 
+
+
         <form
+
           onSubmit={handleSearch}
-          className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4"
+
+          className="grid grid-cols-12 gap-2 md:gap-3 xl:grid-cols-24 xl:items-end"
+
         >
-          <div className="relative md:col-span-5" ref={originRef}>
-            <label className="text-xs text-(--text-muted)">From</label>
+
+          <div
+
+            className="relative col-span-5 min-w-0 md:col-span-5 xl:col-span-5"
+
+            ref={originRef}
+
+          >
+
+            <label className="text-xs font-medium text-white/75">From</label>
+
+
 
             <input
+
               type="text"
+
               placeholder="City or Airport"
+
               value={originInput}
+
               onChange={(e) => {
+
                 const value = e.target.value;
+
                 setOriginInput(value);
+
                 setOriginSuggestions(searchAirports(value));
 
+
+
                 if (!value.trim()) {
+
                   setFormData((prev) => ({ ...prev, origin: "" }));
+
                 }
+
               }}
-              className="rounded-xl p-3 text-sm w-full transition-all outline-none"
-              style={{
-                background: "var(--bg-main)",
-                color: "var(--text-main)",
-                border: "1px solid var(--border-soft)",
-              }}
-              onFocus={(e) => {
-                e.target.style.border = "1px solid var(--gold-main)";
-                e.target.style.boxShadow = "0 0 0 2px rgba(234,168,42,0.2)";
-              }}
-              onBlur={(e) => {
-                e.target.style.border = "1px solid var(--border-soft)";
-                e.target.style.boxShadow = "none";
-              }}
+
+              className="w-full min-w-0 rounded-xl border border-white/20 bg-white/[0.08] px-3 py-2.5 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.18)] outline-none backdrop-blur-xl transition placeholder:text-white/70 hover:border-white/30 hover:bg-white/[0.10] focus:border-[#E6B35C]/70 focus:bg-white/[0.11] focus:ring-2 focus:ring-[#E6B35C]/15"
+
+
+
             />
+
+
 
             {originSuggestions.length > 0 && (
-              <div className="absolute top-full mt-2 w-full bg-(--bg-card) border rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+
+              <div className="absolute top-full z-[100] mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-white/15 bg-[#07111c]/95 shadow-2xl backdrop-blur-xl">
+
                 {originSuggestions.map((airport) => (
+
                   <div
+
                     key={airport.iata}
+
                     onClick={() => {
+
                       setFormData((prev) => ({
+
                         ...prev,
+
                         origin: airport.iata,
+
                       }));
+
+
 
                       setOriginInput(`${airport.city} (${airport.iata})`);
+
                       setOriginSuggestions([]);
+
                     }}
-                    className="p-3 hover:bg-(--bg-secondary) cursor-pointer border-b border-(--border-soft)"
+
+                    className="cursor-pointer border-b border-white/10 p-3 transition hover:bg-white/[0.08]"
+
                   >
+
                     <div className="flex justify-between">
+
                       <span className="font-medium">{airport.city}</span>
+
                       <span className="font-semibold text-(--gold-main)">
+
                         {airport.iata}
+
                       </span>
+
                     </div>
+
+
 
                     <div className="text-xs text-(--text-muted)">
+
                       {airport.name}
+
                     </div>
+
                   </div>
+
                 ))}
+
               </div>
+
             )}
+
           </div>
 
-          <div className="flex justify-center items-end md:col-span-1">
+
+
+          <div className="col-span-2 flex items-end justify-center md:col-span-1 xl:col-span-1">
+
             <button
+
               type="button"
+
               onClick={swapAirports}
-              className="w-9 h-9 rounded-full border border-(--border-soft) flex items-center justify-center hover:bg-(--bg-secondary)"
+
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/[0.08] text-xs text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.16)] backdrop-blur-xl transition hover:border-[#E6B35C]/50 hover:bg-white/[0.12] sm:h-9 sm:w-9"
+
             >
+
               ⇄
+
             </button>
+
           </div>
 
-          <div className="relative md:col-span-5" ref={destinationRef}>
-            <label className="text-xs text-(--text-muted)">To</label>
+
+
+          <div
+
+            className="relative col-span-5 min-w-0 md:col-span-5 xl:col-span-5"
+
+            ref={destinationRef}
+
+          >
+
+            <label className="text-xs font-medium text-white/75">To</label>
+
+
 
             <input
+
               type="text"
+
               placeholder="City or Airport"
+
               value={destinationInput}
+
               onChange={(e) => {
+
                 const value = e.target.value;
+
                 setDestinationInput(value);
+
                 setDestinationSuggestions(searchAirports(value));
 
+
+
                 if (!value.trim()) {
+
                   setFormData((prev) => ({ ...prev, destination: "" }));
+
                 }
+
               }}
-              className="bg-(--bg-secondary) border border-(--border-soft) rounded-lg p-2.5 text-sm w-full"
+
+              className="w-full min-w-0 rounded-xl border border-white/20 bg-white/[0.08] px-3 py-2.5 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.18)] outline-none backdrop-blur-xl transition placeholder:text-white/70 hover:border-white/30 hover:bg-white/[0.10] focus:border-[#E6B35C]/70 focus:bg-white/[0.11] focus:ring-2 focus:ring-[#E6B35C]/15"
+
             />
 
+
+
             {destinationSuggestions.length > 0 && (
-              <div className="absolute top-full mt-2 w-full bg-(--bg-card) border rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto">
+
+              <div className="absolute top-full z-[100] mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-white/15 bg-[#07111c]/95 shadow-2xl backdrop-blur-xl">
+
                 {destinationSuggestions.map((airport) => (
+
                   <div
+
                     key={airport.iata}
+
                     onClick={() => {
+
                       setFormData((prev) => ({
+
                         ...prev,
+
                         destination: airport.iata,
+
                       }));
 
+
+
                       setDestinationInput(`${airport.city} (${airport.iata})`);
+
                       setDestinationSuggestions([]);
+
                     }}
-                    className="p-3 hover:bg-(--bg-secondary) cursor-pointer border-b border-(--border-soft)"
+
+                    className="cursor-pointer border-b border-white/10 p-3 transition hover:bg-white/[0.08]"
+
                   >
+
                     <div className="flex justify-between">
+
                       <span className="font-medium">{airport.city}</span>
+
                       <span className="font-semibold text-(--gold-main)">
+
                         {airport.iata}
+
                       </span>
+
                     </div>
+
+
 
                     <div className="text-xs text-(--text-muted)">
+
                       {airport.name}
+
                     </div>
+
                   </div>
+
                 ))}
+
               </div>
+
             )}
+
           </div>
 
-          <div className="grid grid-cols-2 gap-3 md:col-span-6">
-            <div>
+
+
+          <div className="col-span-12 grid grid-cols-2 gap-2 md:col-span-6 md:gap-3 xl:col-span-8">
+
+            <div className="min-w-0">
+
               <label className="text-xs text-(--text-muted)">
+
                 Departure
+
               </label>
 
+
+
               <div className="relative">
+
                 <input
+
                   ref={departureDateRef}
+
                   type="date"
+
                   min={today}
+
                   value={formData.departure_date}
+
                   onChange={(e) =>
+
                     setFormData((prev) => ({
+
                       ...prev,
+
                       departure_date: e.target.value,
+
                       return_date:
+
                         prev.return_date &&
+
                           prev.return_date < e.target.value
+
                           ? ""
+
                           : prev.return_date,
+
                     }))
+
                   }
-                  className="custom-date-input bg-(--bg-secondary) border border-(--border-soft) rounded-lg p-2.5 pr-11 text-sm w-full text-white"
+
+                  className="custom-date-input w-full min-w-0 rounded-xl border border-white/20 bg-white/[0.08] px-3 py-2.5 pr-11 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.18)] outline-none backdrop-blur-xl transition hover:border-white/30 hover:bg-white/[0.10] focus:border-[#E6B35C]/70 focus:bg-white/[0.11] focus:ring-2 focus:ring-[#E6B35C]/15"
+
                 />
 
+
+
                 <button
+
                   type="button"
+
                   onClick={() =>
+
                     departureDateRef.current?.showPicker?.()
+
                   }
+
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#E6B35C] text-lg z-10"
+
                   aria-label="Select departure date"
+
                 >
+
                   📅
+
                 </button>
+
               </div>
+
             </div>
+
+
 
             <div>
+
               <label className="text-xs text-(--text-muted)">
+
                 Return
+
               </label>
 
+
+
               <div className="relative">
+
                 <input
+
                   ref={returnDateRef}
+
                   type="date"
+
                   disabled={tripType === "oneway"}
+
                   min={formData.departure_date || today}
+
                   value={formData.return_date}
+
                   onChange={(e) =>
+
                     setFormData((prev) => ({
+
                       ...prev,
+
                       return_date: e.target.value,
+
                     }))
+
                   }
-                  className="custom-date-input bg-(--bg-secondary) border border-(--border-soft) rounded-lg p-2.5 pr-11 text-sm w-full text-white disabled:opacity-50"
+
+                  className="custom-date-input w-full min-w-0 rounded-xl border border-white/20 bg-white/[0.08] px-3 py-2.5 pr-11 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.18)] outline-none backdrop-blur-xl transition hover:border-white/30 hover:bg-white/[0.10] focus:border-[#E6B35C]/70 focus:bg-white/[0.11] focus:ring-2 focus:ring-[#E6B35C]/15 disabled:cursor-not-allowed disabled:bg-white/[0.04] disabled:text-white/50 disabled:opacity-70"
+
                 />
 
+
+
                 <button
+
                   type="button"
+
                   disabled={tripType === "oneway"}
+
                   onClick={() =>
+
                     returnDateRef.current?.showPicker?.()
+
                   }
+
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#E6B35C] text-lg z-10 disabled:opacity-30 disabled:cursor-not-allowed"
+
                   aria-label="Select return date"
+
                 >
+
                   📅
+
                 </button>
+
               </div>
+
             </div>
+
           </div>
 
-          <div className="relative md:col-span-3" ref={travellerRef}>
+
+
+          <div
+
+            className="relative col-span-12 min-w-0 md:col-span-3 xl:col-span-5"
+
+            ref={travellerRef}
+
+          >
+
             <label className="text-xs text-(--text-muted)">
+
               Travellers & Class
+
             </label>
 
+
+
             <button
+
               type="button"
+
               onClick={() => setTravellersOpen(!travellersOpen)}
-              className="bg-(--bg-secondary) border border-(--border-soft) rounded-lg p-2.5 text-sm w-full text-left"
+
+              className="w-full rounded-xl border border-white/20 bg-white/[0.08] px-3 py-2.5 text-left text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl transition hover:border-[#E6B35C]/50 hover:bg-white/[0.10] focus:border-[#E6B35C]/70 focus:outline-none focus:ring-2 focus:ring-[#E6B35C]/15"
+
             >
+
               {totalTravellers} Traveller{totalTravellers > 1 ? "s" : ""} ·{" "}
+
               {travellers.cabin}
+
             </button>
 
+
+
             {travellersOpen && (
+
               <div
+
                 className="
+
                 absolute bottom-full mb-2
+
                 md:top-full md:bottom-auto md:mt-2 md:mb-0
+
                 left-0
+
                 w-full md:w-95
+
                 bg-(--bg-card)
+
                 border border-(--border-soft)
+
                 rounded-2xl
+
                 shadow-2xl
+
                 p-4
-                z-50
+
+                z-[100]
+
                 max-h-[70vh]
+
                 overflow-y-auto
+
               "
+
               >
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
                   <div className="space-y-3">
+
                     {[
+
                       {
+
                         key: "adults",
+
                         label: "Adults",
+
                         subLabel: "12+ years",
+
                       },
+
                       {
+
                         key: "children",
+
                         label: "Children",
+
                         subLabel: "2-11 years",
+
                       },
+
                       {
+
                         key: "infants",
+
                         label: "Infants",
+
                         subLabel: "Under 2 years",
+
                       },
+
                     ].map((item) => (
+
                       <div
+
                         key={item.key}
+
                         className="flex justify-between items-center"
+
                       >
-                        <div>
+
+                        <div className="min-w-0">
+
                           <p className="font-medium text-sm">{item.label}</p>
+
                           <p className="text-xs text-(--text-muted)">
+
                             {item.subLabel}
+
                           </p>
+
                         </div>
+
+
 
                         <div className="flex items-center gap-3">
+
                           <button
+
                             type="button"
+
                             onClick={() => updateCount(item.key, -1)}
+
                             className="w-8 h-8 border border-(--border-soft) rounded-lg"
+
                           >
+
                             -
+
                           </button>
+
+
 
                           <span className="w-6 text-center">
+
                             {travellers[item.key]}
+
                           </span>
 
+
+
                           <button
+
                             type="button"
+
                             onClick={() => updateCount(item.key, 1)}
+
                             className="w-8 h-8 border border-(--border-soft) rounded-lg"
+
                           >
+
                             +
+
                           </button>
+
                         </div>
+
                       </div>
+
                     ))}
+
                   </div>
+
+
 
                   <div className="space-y-2">
+
                     <label className="text-xs font-medium text-(--text-muted)">
+
                       Cabin Class
+
                     </label>
 
+
+
                     <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
+
                       {[
+
                         "Economy",
+
                         "Premium Economy",
+
                         "Business",
+
                         "First Class",
+
                       ].map((cabin) => (
+
                         <button
+
                           key={cabin}
+
                           type="button"
+
                           onClick={() =>
+
                             setTravellers((prev) => ({
+
                               ...prev,
+
                               cabin,
+
                             }))
+
                           }
+
                           className={`
+
                           text-sm px-3 py-2 rounded-lg border transition text-center
+
                           ${travellers.cabin === cabin
+
                               ? "bg-linear-to-r from-start to-end text-black border-transparent"
+
                               : "border-(--border-soft) hover:bg-(--bg-secondary)"
+
                             }
+
                         `}
+
                         >
+
                           {cabin}
+
                         </button>
+
                       ))}
+
                     </div>
+
                   </div>
+
                 </div>
 
+
+
                 <button
+
                   type="button"
+
                   onClick={() => setTravellersOpen(false)}
+
                   className="w-full mt-4 bg-linear-to-r from-start to-end text-black rounded-lg py-2 font-semibold"
+
                 >
+
                   Done
+
                 </button>
+
               </div>
+
             )}
+
           </div>
 
+
+
           <button
+
             type="submit"
+
             disabled={loading}
-            className="md:col-span-12 bg-linear-to-r from-start to-end text-black rounded-xl p-3 font-semibold text-base disabled:opacity-60 disabled:cursor-not-allowed"
+
+            className="col-span-12 justify-self-center w-full sm:w-52 md:col-span-12 md:w-60 xl:col-span-24 xl:w-64 bg-linear-to-r from-start to-end text-black rounded-xl px-4 py-2 font-semibold text-sm transition hover:brightness-105 disabled:opacity-60 disabled:cursor-not-allowed"
+
           >
+
             {loading ? "Searching Flights..." : "Search Flights"}
+
           </button>
+
         </form>
+
       </div>
+
     </>
+
   );
+
 };
+
+
 
 export default FlightsForm;
