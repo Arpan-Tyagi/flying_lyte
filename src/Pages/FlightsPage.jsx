@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import FaqSection from "../components/common/FaqSection";
+import SEO from "../components/SEO";
 import {
     Plane,
     ShieldCheck,
@@ -61,6 +62,11 @@ const FlightsPage = () => {
 
     return (
         <main className="min-h-screen bg-[#0B0F14] text-white">
+            <SEO
+                title="Book Flights - Domestic & International Flight Deals"
+                description="Book domestic and international flights with FlyingLyte. Real-time schedules, exclusive airline offers, and 24/7 travel support."
+                canonical="https://www.flyinglyte.com/flights"
+            />
             {/* HERO */}
             <section className="relative min-h-[700px] w-full sm:min-h-[660px] md:min-h-[620px]">
                 {/* BACKGROUND */}

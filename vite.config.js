@@ -13,7 +13,16 @@ export default defineConfig({
   build: {
     target: "es2015",
     cssTarget: "chrome61",
-    chunkSizeWarningLimit: 1800,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom", "react-router-dom"],
+          query: ["@tanstack/react-query"],
+          icons: ["lucide-react"],
+        },
+      },
+    },
   },
 
   esbuild: {

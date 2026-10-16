@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/SEO";
 import { blogs } from "../data/blogs";
 
 const BLOG_IMAGE_PATH = "/images/blogs/";
@@ -24,53 +24,30 @@ const Blogs = () => {
 
   return (
     <main className="min-h-screen bg-[var(--bg-main)] text-white py-24">
-      <Helmet>
-        <title>Travel Blogs, Guides & Tips | FlyingLyte</title>
-        <meta
-          name="description"
-          content="Read FlyingLyte travel blogs for destination guides, flight booking tips, hotel booking advice, honeymoon packages, group tours, international trips, and travel planning ideas."
-        />
-        <link rel="canonical" href="https://www.flyinglyte.com/blogs" />
-
-        {/* Open Graph */}
-        <meta property="og:type" content="blog" />
-        <meta property="og:site_name" content="FlyingLyte" />
-        <meta property="og:title" content="Travel Blogs, Guides & Tips | FlyingLyte" />
-        <meta
-          property="og:description"
-          content="Read FlyingLyte travel blogs for destination guides, flight booking tips, hotel booking advice, honeymoon packages, group tours, international trips, and travel planning ideas."
-        />
-        <meta property="og:url" content="https://www.flyinglyte.com/blogs" />
-        <meta property="og:image" content="https://www.flyinglyte.com/images/HeroImage.jpg" />
-
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Travel Blogs, Guides & Tips | FlyingLyte" />
-        <meta
-          name="twitter:description"
-          content="Read FlyingLyte travel blogs for destination guides, flight booking tips, hotel booking advice, honeymoon packages, group tours, international trips, and travel planning ideas."
-        />
-        <meta name="twitter:image" content="https://www.flyinglyte.com/images/HeroImage.jpg" />
-      </Helmet>
+      <SEO
+        title="Travel Blogs, Guides & Tips"
+        description="Read FlyingLyte travel blogs for destination guides, flight booking tips, hotel booking advice, honeymoon packages, group tours, international trips, and travel planning ideas."
+        canonical="https://www.flyinglyte.com/blogs"
+      />
 
       <div className="max-w-7xl mx-auto px-4">
         <section className="text-center mb-14">
-          <p className="text-xs md:text-sm font-semibold tracking-[0.28em] uppercase text-[var(--gold-soft)]">
+          <p className="font-body text-sm md:text-base tracking-[0.3em] uppercase text-[var(--gold-soft)]">
             FlyingLyte Travel Blog
           </p>
 
-          <h1 className="mt-4 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-[var(--gold-main)] leading-tight">
+          <h1 className="mt-4 font-heading text-4xl md:text-7xl text-[var(--gold-main)] leading-tight">
             Travel Blogs, Guides & Tips
           </h1>
 
-          <p className="mt-5 max-w-3xl mx-auto text-base md:text-lg leading-8 text-[var(--text-muted)]">
+          <p className="mt-5 max-w-3xl mx-auto font-body text-lg leading-8 text-[var(--text-muted)]">
             Explore helpful travel blogs from FlyingLyte, including destination
             guides, hotel booking tips, flight booking advice, festival travel
             updates, honeymoon ideas, group tour guides, and smart travel
             planning suggestions for Indian travelers.
           </p>
 
-          <p className="mt-4 max-w-3xl mx-auto text-base leading-8 text-[var(--text-muted)]">
+          <p className="mt-4 max-w-3xl mx-auto font-body text-base leading-8 text-[var(--text-muted)]">
             Whether you are planning a family vacation, a romantic getaway, a
             budget-friendly trip, a luxury holiday, or an international tour,
             our travel stories and guides help you choose the right destination,

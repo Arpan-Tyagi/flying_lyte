@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import FaqSection from "../components/common/FaqSection";
+import SEO from "../components/SEO";
 import { Hotel, MapPin, ShieldCheck, Headphones, CalendarDays, ArrowRight, BedDouble } from "lucide-react";
 import HotelsForm from "../modules/Search/HotelsForm";
 
@@ -24,6 +25,11 @@ const HotelsPage = () => {
 
     return (
         <main className="min-h-screen bg-[#0B0F14] text-white">
+            <SEO
+                title="Book Hotels & Luxury Resorts - Best Rates"
+                description="Book premium hotels and resorts in Goa, Manali, Kashmir, Dubai, and top global destinations. Verified amenities, best price guarantee, and instant booking."
+                canonical="https://www.flyinglyte.com/hotels"
+            />
             {/* HERO */}
             <section className="relative min-h-[700px] w-full sm:min-h-[660px] md:min-h-[620px]">
                 {/* BACKGROUND */}
