@@ -16,24 +16,6 @@
 
     <link rel="icon" type="image/png" href="/images/flying_lyte.png" />
 
-    <!-- Google Consent Mode: default denied before Google tags -->
-    <script>
-      window.dataLayer = window.dataLayer || [];
-
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-
-      gtag("consent", "default", {
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied",
-        analytics_storage: "denied",
-        functionality_storage: "granted",
-        security_storage: "granted",
-      });
-    </script>
-
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -47,32 +29,24 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+
+      /* Consent defaults — analytics granted (no cookie wall, India audience) */
+      gtag("consent", "default", {
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        analytics_storage: "granted",
+        functionality_storage: "granted",
+        security_storage: "granted",
+      });
+
       gtag('js', new Date());
+      gtag('config', 'G-PWH1WRN04Q', { send_page_view: true });
 
-      gtag('config', 'G-PWH1WRN04Q');
-    </script>
-
-    <script>
       /* Google Ads */
-      gtag("config", "AW-18015093510", {
-        anonymize_ip: true,
-        allow_google_signals: false,
-        allow_ad_personalization_signals: false,
-      });
-
-      /* New Google Ads */
-      gtag("config", "AW-18404161246", {
-        anonymize_ip: true,
-        allow_google_signals: false,
-        allow_ad_personalization_signals: false,
-      });
-
-      /* Google tag ID */
-      gtag("config", "GT-P3FFKHTW", {
-        anonymize_ip: true,
-        allow_google_signals: false,
-        allow_ad_personalization_signals: false,
-      });
+      gtag("config", "AW-18015093510");
+      gtag("config", "AW-18404161246");
+      gtag("config", "GT-P3FFKHTW");
     </script>
 
     <title>FlyingLyte - Premium Flights, Hotels & Holiday Packages</title>
