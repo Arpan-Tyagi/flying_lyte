@@ -390,7 +390,7 @@ const totalAmountPaid = Number(
   const companyMobile = "9667455591";
   const companyWebsite = "https://www.flyinglyte.com";
   const companyAddress =
-    "316, Basement, Gagan Vihar, Near Preet Vihar Metro Station, Delhi-110051";
+    "316, Gagan Vihar, Near Preet Vihar Metro Station, Delhi-110051";
   const companyPan = "AALFF0579Q";
 
   const invoiceToName =

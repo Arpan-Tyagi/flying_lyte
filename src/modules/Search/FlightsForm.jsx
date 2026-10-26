@@ -23,6 +23,7 @@ const FlightsForm = () => {
 
   const {
     setFlights,
+    setRoundTripFlights,
     setPassengerCount,
     setSearchTravellers,
     setLastSearchPayload,
@@ -390,61 +391,103 @@ const FlightsForm = () => {
 
 
       const rawResults =
-
         apiResponse?.Results ||
-
         data?.data?.Response?.Results ||
-
         data?.Response?.Results ||
-
         [];
 
-
-
-      const results = Array.isArray(rawResults)
-
-        ? rawResults.flat(Infinity).filter(Boolean)
-
-        : [];
-
-
-
-      console.log("PARSED FLIGHT RESULTS:", results);
-
-
-
-      if (!results.length) {
-
-        setError(errorMessage || "No flights found");
-
-        return;
-
-      }
-
-
-
       const traceId =
-
         apiResponse?.TraceId ||
-
         data?.data?.Response?.TraceId ||
-
         data?.Response?.TraceId ||
-
         null;
 
 
-      // ✅ save search for result-page refresh
-      setLastSearchPayload(payload);
+      // ==========================================
+      // ROUND TRIP
+      // Results[0] = Outbound
+      // Results[1] = Inbound
+      // ==========================================
+
+      if (tripType === "roundtrip") {
+        const outboundResults =
+          Array.isArray(rawResults?.[0])
+            ? rawResults[0].filter(Boolean)
+            : [];
+
+        const inboundResults =
+          Array.isArray(rawResults?.[1])
+            ? rawResults[1].filter(Boolean)
+            : [];
+
+        console.log(
+          "ROUND TRIP OUTBOUND:",
+          outboundResults,
+        );
+
+        console.log(
+          "ROUND TRIP INBOUND:",
+          inboundResults,
+        );
+
+        // Round trip requires flights in both directions
+        if (
+          !outboundResults.length ||
+          !inboundResults.length
+        ) {
+          setError(
+            errorMessage ||
+            "Round trip flights are not available for both journeys.",
+          );
+          return;
+        }
+
+        // Save payload for refresh/pagination
+        setLastSearchPayload(payload);
+
+        setRoundTripFlights({
+          outboundFlights: outboundResults,
+          inboundFlights: inboundResults,
+          traceId,
+          pagination,
+
+          // New search → remove old OB / IB selection
+          resetSelection: true,
+        });
+      }
 
 
+      // ==========================================
+      // ONE WAY
+      // Existing flow remains unchanged
+      // ==========================================
 
+      else {
+        const results = Array.isArray(rawResults)
+          ? rawResults.flat(Infinity).filter(Boolean)
+          : [];
 
-      setFlights({
-        flights: results,
-        traceId,
-        pagination,
-      });
+        console.log(
+          "PARSED ONE WAY RESULTS:",
+          results,
+        );
+
+        if (!results.length) {
+          setError(
+            errorMessage || "No flights found",
+          );
+          return;
+        }
+
+        // Existing one-way search storage
+        setLastSearchPayload(payload);
+
+        setFlights({
+          flights: results,
+          traceId,
+          pagination,
+        });
+      }
 
 
 

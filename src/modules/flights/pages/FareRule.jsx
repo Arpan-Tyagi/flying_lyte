@@ -153,15 +153,41 @@ const formatDateTime = (value) => {
 const FareRule = () => {
   const navigate = useNavigate();
 
-  const { traceId, resultIndex, selectedFlight, isTraceExpired } =
-    useFlightStore();
+  const {
+    traceId,
+
+    // One Way
+    resultIndex,
+    selectedFlight,
+
+    // Round Trip
+    outboundResultIndex,
+    inboundResultIndex,
+    selectedOutboundFlight,
+    selectedInboundFlight,
+
+    lastSearchPayload,
+    isTraceExpired,
+  } = useFlightStore();
+
+  const isRoundTrip =
+    lastSearchPayload?.trip_type === "roundtrip"; 
 
   const [fareRules, setFareRules] = useState([]);
   const [openRule, setOpenRule] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const sessionMissing = !traceId || !hasValidResultIndex(resultIndex);
+  const sessionMissing = isRoundTrip
+    ? (
+      !traceId ||
+      !hasValidResultIndex(outboundResultIndex) ||
+      !hasValidResultIndex(inboundResultIndex)
+    )
+    : (
+      !traceId ||
+      !hasValidResultIndex(resultIndex)
+    );
 
   const sessionExpired =
     typeof isTraceExpired === "function" && isTraceExpired();
@@ -185,50 +211,118 @@ const FareRule = () => {
 
     if (sessionExpired) {
       setLoading(false);
-      setError("Your flight search session is older than 15 minutes.");
+      setError(
+        "Your flight search session is older than 15 minutes.",
+      );
       return;
     }
 
     let isMounted = true;
+
+    const fetchRulesForResultIndex = async (
+      currentResultIndex,
+    ) => {
+      const response = await publicApi.post(
+        "/api/airlines/fare-rule/",
+        {
+          TraceId: traceId,
+          ResultIndex: currentResultIndex,
+        },
+      );
+
+      const data = response?.data;
+
+      const errorCode =
+        data?.data?.Response?.Error?.ErrorCode ||
+        data?.Response?.Error?.ErrorCode ||
+        data?.Error?.ErrorCode;
+
+      const errorMessage =
+        data?.data?.Response?.Error?.ErrorMessage ||
+        data?.Response?.Error?.ErrorMessage ||
+        data?.error ||
+        data?.message;
+
+      if (Number(errorCode) === 6) {
+        throw new Error(
+          "Invalid token. Please search again.",
+        );
+      }
+
+      if (
+        errorMessage &&
+        errorCode &&
+        Number(errorCode) !== 0
+      ) {
+        throw new Error(errorMessage);
+      }
+
+      return getFareRulesFromResponse(data);
+    };
 
     const fetchFareRules = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const response = await publicApi.post("/api/airlines/fare-rule/", {
-          TraceId: traceId,
-          ResultIndex: resultIndex,
-        });
+        // ==============================
+        // ROUND TRIP
+        // ==============================
 
-        const data = response?.data;
+        if (isRoundTrip) {
+          const [
+            outboundRules,
+            inboundRules,
+          ] = await Promise.all([
+            fetchRulesForResultIndex(
+              outboundResultIndex,
+            ),
 
-        const errorCode =
-          data?.data?.Response?.Error?.ErrorCode ||
-          data?.Response?.Error?.ErrorCode ||
-          data?.Error?.ErrorCode;
+            fetchRulesForResultIndex(
+              inboundResultIndex,
+            ),
+          ]);
 
-        const errorMessage =
-          data?.data?.Response?.Error?.ErrorMessage ||
-          data?.Response?.Error?.ErrorMessage ||
-          data?.error ||
-          data?.message;
+          if (!isMounted) return;
 
-        if (Number(errorCode) === 6) {
-          throw new Error("Invalid token. Please search again.");
+          const taggedOutboundRules =
+            outboundRules.map((rule) => ({
+              ...rule,
+              __tripDirection: "outbound",
+            }));
+
+          const taggedInboundRules =
+            inboundRules.map((rule) => ({
+              ...rule,
+              __tripDirection: "inbound",
+            }));
+
+          setFareRules([
+            ...taggedOutboundRules,
+            ...taggedInboundRules,
+          ]);
+
+          return;
         }
 
-        if (errorMessage && errorCode && Number(errorCode) !== 0) {
-          throw new Error(errorMessage);
-        }
+        // ==============================
+        // ONE WAY
+        // Existing behaviour
+        // ==============================
 
-        const rules = getFareRulesFromResponse(data);
+        const rules =
+          await fetchRulesForResultIndex(
+            resultIndex,
+          );
 
         if (isMounted) {
           setFareRules(rules);
         }
       } catch (err) {
-        console.error("FARE RULE ERROR:", err);
+        console.error(
+          "FARE RULE ERROR:",
+          err,
+        );
 
         if (isMounted) {
           setError(
@@ -250,7 +344,18 @@ const FareRule = () => {
     return () => {
       isMounted = false;
     };
-  }, [traceId, resultIndex, sessionMissing, sessionExpired]);
+  }, [
+    traceId,
+
+    resultIndex,
+
+    outboundResultIndex,
+    inboundResultIndex,
+
+    isRoundTrip,
+    sessionMissing,
+    sessionExpired,
+  ]);
 
   const handleSearchAgain = () => {
     navigate("/");
@@ -269,9 +374,23 @@ const FareRule = () => {
       return;
     }
 
-    if (!selectedFlight) {
-      setError("Selected flight missing. Please select flight again.");
-      return;
+    if (isRoundTrip) {
+      if (
+        !selectedOutboundFlight ||
+        !selectedInboundFlight
+      ) {
+        setError(
+          "Please select both outbound and return flights.",
+        );
+        return;
+      }
+    } else {
+      if (!selectedFlight) {
+        setError(
+          "Selected flight missing. Please select flight again.",
+        );
+        return;
+      }
     }
 
     navigate("/fare-quote");
@@ -315,61 +434,154 @@ const FareRule = () => {
           </p>
         </div>
 
-        {selectedFlight && firstSegment && lastSegment && (
-          <div className="bg-(--bg-card) border border-(--border-soft) rounded-2xl p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="flex items-center justify-between md:justify-start gap-6 w-full md:w-auto">
-                <div className="text-center">
-                  <p className="text-xl font-bold text-(--gold-soft)">
-                    {firstSegment?.Origin?.Airport?.AirportCode || "-"}
-                  </p>
-                  <p className="text-xs text-(--text-muted)">
-                    {firstSegment?.Origin?.Airport?.CityName || "-"}
-                  </p>
-                </div>
+        {!isRoundTrip && (
+          <>
+            {selectedFlight && firstSegment && lastSegment && (
+              <div className="bg-(--bg-card) border border-(--border-soft) rounded-2xl p-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                  <div className="flex items-center justify-between md:justify-start gap-6 w-full md:w-auto">
+                    <div className="text-center">
+                      <p className="text-xl font-bold text-(--gold-soft)">
+                        {firstSegment?.Origin?.Airport?.AirportCode || "-"}
+                      </p>
+                      <p className="text-xs text-(--text-muted)">
+                        {firstSegment?.Origin?.Airport?.CityName || "-"}
+                      </p>
+                    </div>
 
-                <div className="text-(--gold-main) text-xl">✈</div>
+                    <div className="text-(--gold-main) text-xl">✈</div>
 
-                <div className="text-center">
-                  <p className="text-xl font-bold text-(--gold-soft)">
-                    {lastSegment?.Destination?.Airport?.AirportCode || "-"}
-                  </p>
-                  <p className="text-xs text-(--text-muted)">
-                    {lastSegment?.Destination?.Airport?.CityName || "-"}
-                  </p>
+                    <div className="text-center">
+                      <p className="text-xl font-bold text-(--gold-soft)">
+                        {lastSegment?.Destination?.Airport?.AirportCode || "-"}
+                      </p>
+                      <p className="text-xs text-(--text-muted)">
+                        {lastSegment?.Destination?.Airport?.CityName || "-"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-left md:text-right">
+                    <p className="text-sm font-semibold text-(--gold-main)">
+                      {airline?.AirlineName || "Airline"}
+                    </p>
+
+                    <p className="text-xs text-(--text-muted)">
+                      {airline?.AirlineCode || ""}
+                      {airline?.AirlineCode && airline?.FlightNumber ? "-" : ""}
+                      {airline?.FlightNumber || ""}
+                    </p>
+
+                    <p className="mt-2 text-xl font-bold text-(--gold-soft)">
+                      ₹
+                      {Number(
+                        fare?.PublishedFare || fare?.OfferedFare || 0,
+                      ).toLocaleString("en-IN")}
+                    </p>
+
+                    <span
+                      className={`inline-block mt-2 text-xs px-2 py-1 rounded ${selectedFlight?.IsLCC
+                        ? "bg-yellow-500/20 text-yellow-400"
+                        : "bg-green-500/20 text-green-400"
+                        }`}
+                    >
+                      {selectedFlight?.IsLCC ? "LCC" : "Full Service"}
+                    </span>
+                  </div>
                 </div>
               </div>
-
-              <div className="text-left md:text-right">
-                <p className="text-sm font-semibold text-(--gold-main)">
-                  {airline?.AirlineName || "Airline"}
-                </p>
-
-                <p className="text-xs text-(--text-muted)">
-                  {airline?.AirlineCode || ""}
-                  {airline?.AirlineCode && airline?.FlightNumber ? "-" : ""}
-                  {airline?.FlightNumber || ""}
-                </p>
-
-                <p className="mt-2 text-xl font-bold text-(--gold-soft)">
-                  ₹
-                  {Number(
-                    fare?.PublishedFare || fare?.OfferedFare || 0,
-                  ).toLocaleString("en-IN")}
-                </p>
-
-                <span
-                  className={`inline-block mt-2 text-xs px-2 py-1 rounded ${selectedFlight?.IsLCC
-                      ? "bg-yellow-500/20 text-yellow-400"
-                      : "bg-green-500/20 text-green-400"
-                    }`}
-                >
-                  {selectedFlight?.IsLCC ? "LCC" : "Full Service"}
-                </span>
-              </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
+
+        {isRoundTrip &&
+          selectedOutboundFlight &&
+          selectedInboundFlight && (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {[
+                {
+                  label: "Outbound",
+                  flight: selectedOutboundFlight,
+                },
+                {
+                  label: "Return",
+                  flight: selectedInboundFlight,
+                },
+              ].map(({ label, flight }) => {
+                const flightSegments =
+                  flight?.Segments?.[0] || [];
+
+                const first =
+                  flightSegments?.[0];
+
+                const last =
+                  flightSegments?.[
+                  flightSegments.length - 1
+                  ];
+
+                const currentFare =
+                  flight?.Fare;
+
+                return (
+                  <div
+                    key={label}
+                    className="
+              rounded-2xl
+              border border-(--border-soft)
+              bg-(--bg-card)
+              p-5
+            "
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--gold-main)">
+                      {label}
+                    </p>
+
+                    <div className="mt-4 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-lg font-bold text-(--gold-soft)">
+                          {first?.Origin?.Airport
+                            ?.AirportCode || "-"}
+                          {" → "}
+                          {last?.Destination?.Airport
+                            ?.AirportCode || "-"}
+                        </p>
+
+                        <p className="mt-1 text-xs text-(--text-muted)">
+                          {first?.Airline
+                            ?.AirlineName ||
+                            "Airline"}
+                        </p>
+
+                        <p className="text-xs text-(--text-muted)">
+                          {first?.Airline
+                            ?.AirlineCode || ""}
+                          {first?.Airline
+                            ?.FlightNumber
+                            ? "-"
+                            : ""}
+                          {first?.Airline
+                            ?.FlightNumber || ""}
+                        </p>
+                      </div>
+
+                      <p className="text-lg font-bold text-(--gold-soft)">
+                        ₹
+                        {Number(
+                          currentFare
+                            ?.PublishedFare ||
+                          currentFare
+                            ?.OfferedFare ||
+                          0,
+                        ).toLocaleString(
+                          "en-IN",
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
         {error && (
           <div className="bg-red-500/10 text-red-400 border border-red-500/20 p-3 rounded-lg text-sm flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -411,6 +623,27 @@ const FareRule = () => {
                     className="w-full flex items-center justify-between px-5 py-4 text-left"
                   >
                     <span className="font-semibold text-(--gold-soft)">
+                      {/* Round Trip Direction */}
+                      {isRoundTrip &&
+                        rule?.__tripDirection && (
+                          <span
+                            className="
+          mr-2
+          rounded-full
+          bg-[#E6B35C]/10
+          px-2 py-1
+          text-[10px]
+          uppercase
+          tracking-wide
+          text-[#E6B35C]
+        "
+                          >
+                            {rule.__tripDirection === "outbound"
+                              ? "Outbound"
+                              : "Return"}
+                          </span>
+                        )}
+
                       {origin && destination
                         ? `${origin} → ${destination}`
                         : `Fare Rule ${index + 1}`}

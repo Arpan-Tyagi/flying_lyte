@@ -47,7 +47,7 @@ const Footer = () => {
               <div className="flex items-start gap-2 text-gray-400">
                 <MapPin size={16} className="mt-0.5 shrink-0" />
                 <span>
-                  316, Basement, Gagan Vihar,Nearest Metro : Preet Vihar
+                  316, Gagan Vihar,Nearest Metro : Preet Vihar
                   Delhi-110051
                 </span>
               </div>

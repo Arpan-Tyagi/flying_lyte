@@ -550,7 +550,7 @@ const FlightTicket = ({ booking, pricing, storedData }) => {
               <div className="flight-ticket-company-name">FLYING LYTE</div>
 
               <div>
-                316 Basement Gagan Vihar Gagan Vihar New Delhi East Delhi
+                316, Gagan Vihar Gagan Vihar New Delhi East Delhi
               </div>
 
               <div>Delhi</div>

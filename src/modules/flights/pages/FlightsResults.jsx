@@ -13,10 +13,22 @@ const FlightsResults = () => {
     setFlights,
     setFlight,
     selectedFlight,
+
+    // ✅ Round Trip
+    outboundFlights,
+    inboundFlights,
+    setRoundTripFlights,
+    selectedOutboundFlight,
+    selectedInboundFlight,
+    setOutboundFlight,
+    setInboundFlight,
+
     lastSearchPayload,
     setLastSearchPayload,
     pagination,
   } = useFlightStore();
+  const isRoundTrip =
+    lastSearchPayload?.trip_type === "roundtrip";
   const [pageLoading, setPageLoading] = useState(false);
   const [pageError, setPageError] = useState("");
   const [selectedTimes, setSelectedTimes] = useState([]);
@@ -38,7 +50,18 @@ const FlightsResults = () => {
   /* ---------------- REDIRECT ---------------- */
 
   useEffect(() => {
-    if (flights?.length > 0) return;
+    if (isRoundTrip) {
+      if (
+        outboundFlights?.length > 0 ||
+        inboundFlights?.length > 0
+      ) {
+        return;
+      }
+    } else {
+      if (flights?.length > 0) {
+        return;
+      }
+    }
 
     if (restoreStartedRef.current) return;
 
@@ -68,7 +91,7 @@ const FlightsResults = () => {
         const data = response?.data;
         const newPagination = data?.pagination || null;
 
-        
+
 
         const apiResponse =
           data?.data?.Response ||
@@ -88,26 +111,78 @@ const FlightsResults = () => {
           data?.data?.Response?.Results ||
           data?.Response?.Results ||
           [];
-
-        const results = Array.isArray(rawResults)
-          ? rawResults.flat(Infinity).filter(Boolean)
-          : [];
-
-        if (!results.length) {
-          throw new Error("No flights found for your previous search");
-        }
-
         const traceId =
           apiResponse?.TraceId ||
           data?.data?.Response?.TraceId ||
           data?.Response?.TraceId ||
           null;
 
-        setFlights({
-          flights: results,
-          traceId,
-          pagination: newPagination,
-        }); 
+        // const results = Array.isArray(rawResults)
+        //   ? rawResults.flat(Infinity).filter(Boolean)
+        //   : [];
+
+        // if (!results.length) {
+        //   throw new Error("No flights found for your previous search");
+        // }
+
+
+
+
+        if (isRoundTrip) {
+          const outboundResults =
+            Array.isArray(rawResults?.[0])
+              ? rawResults[0].filter(Boolean)
+              : [];
+
+          const inboundResults =
+            Array.isArray(rawResults?.[1])
+              ? rawResults[1].filter(Boolean)
+              : [];
+
+          if (
+            !outboundResults.length &&
+            !inboundResults.length
+          ) {
+            throw new Error(
+              "Unable to restore round trip flights"
+            );
+          }
+
+          setRoundTripFlights({
+            outboundFlights: outboundResults,
+            inboundFlights: inboundResults,
+            traceId,
+            pagination: newPagination,
+
+            // Refresh par existing selection preserve
+            resetSelection: false,
+          });
+        } else {
+          // ✅ Existing One Way logic
+          const results = Array.isArray(rawResults)
+            ? rawResults.flat(Infinity).filter(Boolean)
+            : [];
+
+          if (!results.length) {
+            throw new Error(
+              "No flights found for your previous search"
+            );
+          }
+
+          setFlights({
+            flights: results,
+            traceId,
+            pagination: newPagination,
+          });
+        }
+
+
+
+        // setFlights({
+        //   flights: results,
+        //   traceId,
+        //   pagination: newPagination,
+        // });
       } catch (error) {
         console.error("RESTORE FLIGHT SEARCH ERROR:", error);
 
@@ -125,8 +200,16 @@ const FlightsResults = () => {
   }, [
     flights,
     selectedFlight,
+
+    outboundFlights,
+    inboundFlights,
+
     lastSearchPayload,
+
     setFlights,
+    setRoundTripFlights,
+
+    isRoundTrip,
   ]);
 
   /* ---------------- HELPERS ---------------- */
@@ -206,14 +289,6 @@ const FlightsResults = () => {
         data?.Response?.Results ||
         [];
 
-      const results = Array.isArray(rawResults)
-        ? rawResults.flat(Infinity).filter(Boolean)
-        : [];
-
-      if (!results.length) {
-        throw new Error("No flights found on this page");
-      }
-
       const traceId =
         apiResponse?.TraceId ||
         data?.data?.Response?.TraceId ||
@@ -224,11 +299,71 @@ const FlightsResults = () => {
       const newPagination =
         data?.pagination || null;
 
-      setFlights({
-        flights: results,
-        traceId,
-        pagination: newPagination,
-      });
+      // const results = Array.isArray(rawResults)
+      //   ? rawResults.flat(Infinity).filter(Boolean)
+      //   : [];
+
+      // if (!results.length) {
+      //   throw new Error("No flights found on this page");
+      // }
+
+
+
+      if (isRoundTrip) {
+        const outboundResults =
+          Array.isArray(rawResults?.[0])
+            ? rawResults[0].filter(Boolean)
+            : [];
+
+        const inboundResults =
+          Array.isArray(rawResults?.[1])
+            ? rawResults[1].filter(Boolean)
+            : [];
+
+        if (
+          !outboundResults.length &&
+          !inboundResults.length
+        ) {
+          throw new Error(
+            "No round trip flights found on this page"
+          );
+        }
+
+        setRoundTripFlights({
+          outboundFlights: outboundResults,
+          inboundFlights: inboundResults,
+          traceId,
+          pagination: newPagination,
+
+          // Page change par selected flights preserve
+          resetSelection: false,
+        });
+      } else {
+        // ✅ Existing One Way pagination
+        const results = Array.isArray(rawResults)
+          ? rawResults.flat(Infinity).filter(Boolean)
+          : [];
+
+        if (!results.length) {
+          throw new Error(
+            "No flights found on this page"
+          );
+        }
+
+        setFlights({
+          flights: results,
+          traceId,
+          pagination: newPagination,
+        });
+      }
+
+
+
+      // setFlights({
+      //   flights: results,
+      //   traceId,
+      //   pagination: newPagination,
+      // });
 
       // refresh hone par same page restore hoga
       setLastSearchPayload(requestPayload);
@@ -375,6 +510,265 @@ const FlightsResults = () => {
     fareType,
   ]);
 
+  const renderRoundTripCard = (
+    flight,
+    index,
+    direction,
+  ) => {
+    const segments =
+      flight?.Segments?.[0] || [];
+
+    const first = segments?.[0];
+
+    const last =
+      segments?.[segments.length - 1];
+
+    if (!first || !last) {
+      return null;
+    }
+
+    const isOutbound =
+      direction === "outbound";
+
+    const selectedDirectionFlight =
+      isOutbound
+        ? selectedOutboundFlight
+        : selectedInboundFlight;
+
+    const isSelected =
+      selectedDirectionFlight?.ResultIndex ===
+      flight?.ResultIndex;
+
+    const expandedKey =
+      `${direction}-${flight?.ResultIndex || index}`;
+
+    const isExpanded =
+      expandedCard === expandedKey;
+
+    const stops =
+      Math.max(0, segments.length - 1);
+
+    const duration =
+      last?.AccumulatedDuration ||
+      first?.Duration ||
+      0;
+
+    const price =
+      Number(
+        flight?.Fare?.PublishedFare || 0,
+      );
+
+    return (
+      <div
+        key={
+          flight?.ResultIndex ||
+          `${direction}-${index}`
+        }
+        className={`
+        rounded-2xl
+        border
+        bg-(--bg-card)
+        p-4
+        transition-all
+        sm:p-5
+
+        ${isSelected
+            ? "border-[#E6B35C] shadow-[0_0_0_1px_rgba(230,179,92,0.25),0_14px_40px_rgba(0,0,0,0.24)]"
+            : "border-(--border-soft) hover:border-[#E6B35C]/40"
+          }
+      `}
+      >
+        {/* Airline + Price */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <AirlineLogo
+              airlineCode={
+                first?.Airline?.AirlineCode
+              }
+              airlineName={
+                first?.Airline?.AirlineName
+              }
+              className="h-9 w-9 shrink-0 object-contain"
+            />
+
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-(--gold-main)">
+                {first?.Airline?.AirlineName}
+              </p>
+
+              <p className="text-xs text-(--text-muted)">
+                {first?.Airline?.AirlineCode}-
+                {first?.Airline?.FlightNumber}
+              </p>
+
+              <span
+                className={`
+                mt-1 inline-flex rounded-md
+                px-2 py-0.5 text-[10px]
+                ${flight?.IsLCC
+                    ? "bg-yellow-500/10 text-yellow-400"
+                    : "bg-green-500/10 text-green-400"
+                  }
+              `}
+              >
+                {flight?.IsLCC
+                  ? "LCC"
+                  : "Full Service"}
+              </span>
+            </div>
+          </div>
+
+          <div className="shrink-0 text-right">
+            <p className="text-base font-bold text-(--gold-soft) sm:text-lg">
+              ₹{price.toLocaleString("en-IN")}
+            </p>
+
+            <p className="text-[10px] text-(--text-muted)">
+              per booking
+            </p>
+          </div>
+        </div>
+
+        {/* Journey */}
+        <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <div>
+            <p className="text-lg font-bold sm:text-xl">
+              {formatTime(
+                first?.Origin?.DepTime,
+              )}
+            </p>
+
+            <p className="text-xs text-(--text-muted)">
+              {
+                first?.Origin?.Airport
+                  ?.AirportCode
+              }
+            </p>
+          </div>
+
+          <div className="min-w-[90px] text-center text-[11px] text-(--text-muted)">
+            <p>
+              {formatDuration(duration)}
+            </p>
+
+            <div className="my-1 flex items-center">
+              <div className="h-px flex-1 bg-(--border-soft)" />
+
+              <span className="px-1 text-[#E6B35C]">
+                ✈
+              </span>
+
+              <div className="h-px flex-1 bg-(--border-soft)" />
+            </div>
+
+            <p>
+              {stops === 0
+                ? "Non Stop"
+                : `${stops} Stop${stops > 1 ? "s" : ""
+                }`}
+            </p>
+          </div>
+
+          <div className="text-right">
+            <p className="text-lg font-bold sm:text-xl">
+              {formatTime(
+                last?.Destination?.ArrTime,
+              )}
+            </p>
+
+            <p className="text-xs text-(--text-muted)">
+              {
+                last?.Destination?.Airport
+                  ?.AirportCode
+              }
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-(--border-soft) pt-3">
+          <button
+            type="button"
+            onClick={() =>
+              setExpandedCard(
+                isExpanded
+                  ? null
+                  : expandedKey,
+              )
+            }
+            className="text-xs text-(--text-muted) transition hover:text-(--gold-main)"
+          >
+            {isExpanded
+              ? "Hide Details"
+              : "View Details"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (isOutbound) {
+                setOutboundFlight(flight);
+              } else {
+                setInboundFlight(flight);
+              }
+            }}
+            className={`
+            rounded-lg
+            px-4 py-2
+            text-xs font-semibold
+            transition
+            sm:text-sm
+
+            ${isSelected
+                ? "border border-[#E6B35C] bg-[#E6B35C]/10 text-[#E6B35C]"
+                : "bg-linear-to-r from-start to-end text-black hover:brightness-105"
+              }
+          `}
+          >
+            {isSelected
+              ? "Selected ✓"
+              : "Select Flight"}
+          </button>
+        </div>
+
+        {/* Expanded details */}
+        {isExpanded && (
+          <div className="mt-4 space-y-2 border-t border-(--border-soft) pt-4">
+            {segments.map((seg, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-3 text-xs"
+              >
+                <span className="text-(--text-muted)">
+                  {
+                    seg?.Origin?.Airport
+                      ?.AirportCode
+                  }{" "}
+                  →{" "}
+                  {
+                    seg?.Destination?.Airport
+                      ?.AirportCode
+                  }
+                </span>
+
+                <span>
+                  {formatTime(
+                    seg?.Origin?.DepTime,
+                  )}{" "}
+                  -{" "}
+                  {formatTime(
+                    seg?.Destination
+                      ?.ArrTime,
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (restoringSearch) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-(--bg-main) text-(--text-main)">
@@ -387,7 +781,18 @@ const FlightsResults = () => {
     );
   }
 
-  if (!flights || (!flights.length && !selectedFlight)) {
+  const hasRoundTripResults =
+    outboundFlights?.length > 0 ||
+    inboundFlights?.length > 0;
+
+  if (
+    isRoundTrip
+      ? !hasRoundTripResults &&
+      !selectedOutboundFlight &&
+      !selectedInboundFlight
+      : !flights ||
+      (!flights.length && !selectedFlight)
+  ) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-(--bg-main) text-(--text-main)">
         <p className="text-lg font-semibold">
@@ -401,6 +806,290 @@ const FlightsResults = () => {
         >
           Search Flights
         </button>
+      </div>
+    );
+  }
+
+
+  if (isRoundTrip) {
+    const outboundPrice =
+      Number(
+        selectedOutboundFlight
+          ?.Fare?.PublishedFare || 0,
+      );
+
+    const inboundPrice =
+      Number(
+        selectedInboundFlight
+          ?.Fare?.PublishedFare || 0,
+      );
+
+    const selectedTotal =
+      outboundPrice + inboundPrice;
+
+    return (
+      <div className="min-h-screen bg-(--bg-main) pb-24 pt-20 text-(--text-main)">
+        <div className="mx-auto w-full max-w-7xl px-3 py-6 sm:px-4 lg:px-6">
+
+          {/* Page heading */}
+          <div className="mb-5 rounded-2xl border border-(--border-soft) bg-(--bg-card) p-4 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--gold-main)">
+              Round Trip Flights
+            </p>
+
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-lg font-semibold sm:text-xl">
+              <span>
+                {lastSearchPayload?.origin}
+              </span>
+
+              <span className="text-(--gold-main)">
+                ⇄
+              </span>
+
+              <span>
+                {lastSearchPayload?.destination}
+              </span>
+            </div>
+
+            <p className="mt-1 text-xs text-(--text-muted)">
+              Select one outbound and one return flight.
+            </p>
+          </div>
+
+          {pageError && (
+            <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm text-red-300">
+              {pageError}
+            </div>
+          )}
+
+          {/* Outbound + Inbound */}
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
+            {/* OUTBOUND */}
+            <section className="min-w-0">
+              <div className="mb-3 flex items-center justify-between rounded-xl border border-(--border-soft) bg-(--bg-card) px-4 py-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] text-(--text-muted)">
+                    Outbound
+                  </p>
+
+                  <p className="mt-0.5 font-semibold text-(--gold-main)">
+                    {lastSearchPayload?.origin}
+                    {" → "}
+                    {lastSearchPayload?.destination}
+                  </p>
+                </div>
+
+                <span className="rounded-full bg-[#E6B35C]/10 px-3 py-1 text-xs text-[#E6B35C]">
+                  {outboundFlights?.length || 0}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {outboundFlights?.length ? (
+                  outboundFlights.map(
+                    (flight, index) =>
+                      renderRoundTripCard(
+                        flight,
+                        index,
+                        "outbound",
+                      ),
+                  )
+                ) : (
+                  <div className="rounded-xl border border-(--border-soft) bg-(--bg-card) p-5 text-center text-sm text-(--text-muted)">
+                    No outbound flights on this page.
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* INBOUND */}
+            <section className="min-w-0">
+              <div className="mb-3 flex items-center justify-between rounded-xl border border-(--border-soft) bg-(--bg-card) px-4 py-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.16em] text-(--text-muted)">
+                    Return
+                  </p>
+
+                  <p className="mt-0.5 font-semibold text-(--gold-main)">
+                    {lastSearchPayload?.destination}
+                    {" → "}
+                    {lastSearchPayload?.origin}
+                  </p>
+                </div>
+
+                <span className="rounded-full bg-[#E6B35C]/10 px-3 py-1 text-xs text-[#E6B35C]">
+                  {inboundFlights?.length || 0}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {inboundFlights?.length ? (
+                  inboundFlights.map(
+                    (flight, index) =>
+                      renderRoundTripCard(
+                        flight,
+                        index,
+                        "inbound",
+                      ),
+                  )
+                ) : (
+                  <div className="rounded-xl border border-(--border-soft) bg-(--bg-card) p-5 text-center text-sm text-(--text-muted)">
+                    No return flights on this page.
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Selected Journey Summary */}
+          <div className="mt-6 rounded-2xl border border-[#E6B35C]/25 bg-(--bg-card) p-4 sm:p-5">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] lg:items-center">
+
+              <div>
+                <p className="text-xs text-(--text-muted)">
+                  Outbound
+                </p>
+
+                {selectedOutboundFlight ? (
+                  <p className="mt-1 text-sm font-semibold">
+                    {
+                      selectedOutboundFlight
+                        ?.Segments?.[0]?.[0]
+                        ?.Airline?.AirlineName
+                    }{" "}
+                    · ₹
+                    {outboundPrice.toLocaleString(
+                      "en-IN",
+                    )}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-(--text-muted)">
+                    Select an outbound flight
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <p className="text-xs text-(--text-muted)">
+                  Return
+                </p>
+
+                {selectedInboundFlight ? (
+                  <p className="mt-1 text-sm font-semibold">
+                    {
+                      selectedInboundFlight
+                        ?.Segments?.[0]?.[0]
+                        ?.Airline?.AirlineName
+                    }{" "}
+                    · ₹
+                    {inboundPrice.toLocaleString(
+                      "en-IN",
+                    )}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-(--text-muted)">
+                    Select a return flight
+                  </p>
+                )}
+              </div>
+
+              <div className="border-t border-(--border-soft) pt-3 sm:col-span-2 lg:col-span-1 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+                <p className="text-xs text-(--text-muted)">
+                  Selected Fare
+                </p>
+
+                <p className="mt-1 text-xl font-bold text-(--gold-soft)">
+                  ₹
+                  {selectedTotal.toLocaleString(
+                    "en-IN",
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pagination */}
+          {pagination?.total_pages > 1 && (
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <p className="text-xs text-(--text-muted)">
+                Page {pagination.current_page} of{" "}
+                {pagination.total_pages}
+              </p>
+
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  disabled={
+                    !pagination.has_previous ||
+                    pageLoading
+                  }
+                  onClick={() =>
+                    handlePageChange(
+                      pagination.previous_page,
+                    )
+                  }
+                  className="rounded-lg border border-(--border-soft) px-3 py-2 text-sm transition hover:border-[#E6B35C]/50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Previous
+                </button>
+
+                {paginationPages.map(
+                  (page, index) =>
+                    page === "..." ? (
+                      <span
+                        key={`roundtrip-ellipsis-${index}`}
+                        className="px-1 text-(--text-muted)"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        type="button"
+                        disabled={pageLoading}
+                        onClick={() =>
+                          handlePageChange(page)
+                        }
+                        className={`
+                        h-9 min-w-9
+                        rounded-lg border
+                        px-3 text-sm
+                        transition
+                        ${pagination.current_page ===
+                            page
+                            ? "border-(--gold-main) bg-(--gold-main) text-black"
+                            : "border-(--border-soft) hover:border-[#E6B35C]/50"
+                          }
+                        disabled:opacity-50
+                      `}
+                      >
+                        {page}
+                      </button>
+                    ),
+                )}
+
+                <button
+                  type="button"
+                  disabled={
+                    !pagination.has_next ||
+                    pageLoading
+                  }
+                  onClick={() =>
+                    handlePageChange(
+                      pagination.next_page,
+                    )
+                  }
+                  className="rounded-lg border border-(--border-soft) px-3 py-2 text-sm transition hover:border-[#E6B35C]/50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {pageLoading
+                    ? "Loading..."
+                    : "Next"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

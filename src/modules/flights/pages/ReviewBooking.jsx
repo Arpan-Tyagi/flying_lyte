@@ -35,17 +35,45 @@ const ReviewBooking = () => {
 
   const getPrice = (val) => Number(val || 0);
   const {
+    // COMMON
     passengers,
+    traceId,
+    gstDetails = null,
+
+    // ONE WAY
     selectedSeats = [],
     selectedMeals = [],
-    selectedFlight,
     selectedBaggage = [],
-    traceId,
+    selectedFlight,
     resultIndex,
     fareQuote: stateFareQuote,
     isLcc: stateIsLcc,
-    gstDetails = null, // ✅ ADD
+
+    // ROUND TRIP
+    isRoundTrip: savedIsRoundTrip,
+    tripType,
+
+    selectedOutboundFlight,
+    selectedInboundFlight,
+
+    outboundResultIndex,
+    inboundResultIndex,
+
+    outboundFareQuote,
+    inboundFareQuote,
+
+    outboundSelectedSeats = [],
+    outboundSelectedMeals = [],
+    outboundSelectedBaggage = [],
+
+    inboundSelectedSeats = [],
+    inboundSelectedMeals = [],
+    inboundSelectedBaggage = [],
   } = data;
+
+  const isRoundTrip =
+    savedIsRoundTrip === true ||
+    tripType === "roundtrip";
 
   const [loading, setLoading] = useState(false);
 
@@ -122,7 +150,30 @@ const ReviewBooking = () => {
   })();
 
   useEffect(() => {
-    if (!passengers || !selectedFlight || !fareQuote) {
+    if (!passengers) {
+      return;
+    }
+
+    if (isRoundTrip) {
+      if (
+        !selectedOutboundFlight ||
+        !selectedInboundFlight ||
+        !outboundFareQuote ||
+        !inboundFareQuote
+      ) {
+        return;
+      }
+
+      localStorage.setItem(
+        "bookingData",
+        JSON.stringify(data),
+      );
+
+      return;
+    }
+
+    // Existing One Way
+    if (!selectedFlight || !fareQuote) {
       return;
     }
 
@@ -138,12 +189,32 @@ const ReviewBooking = () => {
     );
   }, [
     passengers,
+    isRoundTrip,
+
     selectedFlight,
     fareQuote,
     isLcc,
+
+    selectedOutboundFlight,
+    selectedInboundFlight,
+    outboundFareQuote,
+    inboundFareQuote,
   ]);
 
-  if (!passengers || !selectedFlight) {
+  const missingBookingData = isRoundTrip
+    ? (
+      !passengers ||
+      !selectedOutboundFlight ||
+      !selectedInboundFlight ||
+      !outboundFareQuote ||
+      !inboundFareQuote
+    )
+    : (
+      !passengers ||
+      !selectedFlight
+    );
+
+  if (missingBookingData) {
     return (
       <div className="flex justify-center items-center h-screen">
         Missing booking data
@@ -184,6 +255,85 @@ const ReviewBooking = () => {
   // ✅ FINAL TOTAL (MATCH SSR)
   const totalPrice =
     flightFare + seatPrice + mealPrice + baggagePrice + convenienceFee;
+
+
+
+  const getFlightFare = (quote) => {
+    const quoteFare = quote?.Fare || {};
+
+    return getPrice(
+      quoteFare?.PublishedFare ||
+      quote?.PublishedFare ||
+      0,
+    );
+  };
+
+  const outboundFlightFare =
+    getFlightFare(outboundFareQuote);
+
+  const inboundFlightFare =
+    getFlightFare(inboundFareQuote);
+
+  const outboundSeatPrice =
+    outboundSelectedSeats.reduce(
+      (sum, item) =>
+        sum + getPrice(item?.Price),
+      0,
+    );
+
+  const inboundSeatPrice =
+    inboundSelectedSeats.reduce(
+      (sum, item) =>
+        sum + getPrice(item?.Price),
+      0,
+    );
+
+  const outboundMealPrice =
+    outboundSelectedMeals.reduce(
+      (sum, item) =>
+        sum + getPrice(item?.Price),
+      0,
+    );
+
+  const inboundMealPrice =
+    inboundSelectedMeals.reduce(
+      (sum, item) =>
+        sum + getPrice(item?.Price),
+      0,
+    );
+
+  const outboundBaggagePrice =
+    outboundSelectedBaggage.reduce(
+      (sum, item) =>
+        sum + getPrice(item?.Price),
+      0,
+    );
+
+  const inboundBaggagePrice =
+    inboundSelectedBaggage.reduce(
+      (sum, item) =>
+        sum + getPrice(item?.Price),
+      0,
+    );
+
+  const roundTripSeatPrice =
+    outboundSeatPrice +
+    inboundSeatPrice;
+
+  const roundTripMealPrice =
+    outboundMealPrice +
+    inboundMealPrice;
+
+  const roundTripBaggagePrice =
+    outboundBaggagePrice +
+    inboundBaggagePrice;
+
+  const roundTripTotalPrice =
+    outboundFlightFare +
+    inboundFlightFare +
+    roundTripSeatPrice +
+    roundTripMealPrice +
+    roundTripBaggagePrice;
   /* ================= HELPERS ================= */
 
   const formatDate = (date) => {
@@ -1115,12 +1265,37 @@ const ReviewBooking = () => {
         <h3 className="font-semibold mb-3">Passengers</h3>
         {passengers.map((p, i) => {
           const seat = getSSR(selectedSeats, i);
+          const outboundSeat =
+            getSSR(outboundSelectedSeats, i);
+
+          const inboundSeat =
+            getSSR(inboundSelectedSeats, i);
 
           return (
             <div key={i} className="text-sm mb-2">
               {p.title} {p.firstName} {p.lastName}
-              {isLcc && seat?.Code && (
-                <span className="ml-2 text-blue-600">Seat {seat.Code}</span>
+              {!isRoundTrip &&
+                isLcc &&
+                seat?.Code && (
+                  <span className="ml-2 text-blue-600">
+                    Seat {seat.Code}
+                  </span>
+                )}
+
+              {isRoundTrip && (
+                <div className="mt-1 flex flex-wrap gap-2 text-xs">
+                  {outboundSeat?.Code && (
+                    <span className="rounded-full bg-blue-50 px-2 py-1 text-blue-600">
+                      Outbound Seat {outboundSeat.Code}
+                    </span>
+                  )}
+
+                  {inboundSeat?.Code && (
+                    <span className="rounded-full bg-purple-50 px-2 py-1 text-purple-600">
+                      Return Seat {inboundSeat.Code}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           );
@@ -1131,54 +1306,133 @@ const ReviewBooking = () => {
         <h3 className="font-semibold mb-3">Fare Summary</h3>
 
         <div className="text-sm space-y-2">
-          <div className="flex justify-between">
-            <span>Flight Fare</span>
-            <span>₹{flightFare}</span>
-          </div>
+          {!isRoundTrip ? (
+            <>
+              {/* =========================
+          ONE WAY — SAME OLD UI
+      ========================= */}
 
-          {seatPrice > 0 && (
-            <div className="flex justify-between">
-              <span>Seat Charges</span>
-              <span>₹{seatPrice}</span>
-            </div>
+              <div className="flex justify-between">
+                <span>Flight Fare</span>
+                <span>₹{flightFare}</span>
+              </div>
+
+              {seatPrice > 0 && (
+                <div className="flex justify-between">
+                  <span>Seat Charges</span>
+                  <span>₹{seatPrice}</span>
+                </div>
+              )}
+
+              {mealPrice > 0 && (
+                <div className="flex justify-between">
+                  <span>Meal Charges</span>
+                  <span>₹{mealPrice}</span>
+                </div>
+              )}
+
+              {baggagePrice > 0 && (
+                <div className="flex justify-between">
+                  <span>Baggage Charges</span>
+                  <span>₹{baggagePrice}</span>
+                </div>
+              )}
+
+              <hr />
+
+              <div className="flex justify-between font-semibold text-lg">
+                <span>Total Payable</span>
+                <span>₹{totalPrice}</span>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* =========================
+          ROUND TRIP
+      ========================= */}
+
+              <div className="flex justify-between">
+                <span>Outbound Flight Fare</span>
+                <span>
+                  ₹{outboundFlightFare.toFixed(2)}
+                </span>
+              </div>
+
+              <div className="flex justify-between">
+                <span>Return Flight Fare</span>
+                <span>
+                  ₹{inboundFlightFare.toFixed(2)}
+                </span>
+              </div>
+
+              {roundTripSeatPrice > 0 && (
+                <div className="flex justify-between">
+                  <span>Seat Charges</span>
+                  <span>
+                    ₹{roundTripSeatPrice.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              {roundTripMealPrice > 0 && (
+                <div className="flex justify-between">
+                  <span>Meal Charges</span>
+                  <span>
+                    ₹{roundTripMealPrice.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              {roundTripBaggagePrice > 0 && (
+                <div className="flex justify-between">
+                  <span>Baggage Charges</span>
+                  <span>
+                    ₹{roundTripBaggagePrice.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              <hr />
+
+              <div className="flex justify-between font-semibold text-lg">
+                <span>Total Payable</span>
+                <span>
+                  ₹{roundTripTotalPrice.toFixed(2)}
+                </span>
+              </div>
+            </>
           )}
-
-          {mealPrice > 0 && (
-            <div className="flex justify-between">
-              <span>Meal Charges</span>
-              <span>₹{mealPrice}</span>
-            </div>
-          )}
-
-          {baggagePrice > 0 && (
-            <div className="flex justify-between">
-              <span>Baggage Charges</span>
-              <span>₹{baggagePrice}</span>
-            </div>
-          )}
-
-          {/* <div className="flex justify-between">
-            <span>Convenience Fee</span>
-            <span>₹{convenienceFee}</span>
-          </div> */}
-
-          <hr />
-
-          <div className="flex justify-between font-semibold text-lg">
-            <span>Total Payable</span>
-            <span>₹{totalPrice}</span>
-          </div>
         </div>
       </div>
 
-      <button
-        onClick={handleBook}
-        disabled={loading}
-        className={`px-6 py-3 rounded-lg text-white ${loading ? "bg-gray-400" : "bg-green-600"
-          }`}
-      >
-        {loading ? "Booking..." : "Confirm Booking"}
-      </button>
+      {isRoundTrip ? (
+        <button
+          type="button"
+          disabled
+          className="
+      px-6 py-3
+      rounded-lg
+      bg-gray-400
+      text-white
+      cursor-not-allowed
+    "
+        >
+          Round Trip Booking Setup Pending
+        </button>
+      ) : (
+        <button
+          onClick={handleBook}
+          disabled={loading}
+          className={`px-6 py-3 rounded-lg text-white ${loading
+              ? "bg-gray-400"
+              : "bg-green-600"
+            }`}
+        >
+          {loading
+            ? "Booking..."
+            : "Confirm Booking"}
+        </button>
+      )}
 
 
       {popup.show && (

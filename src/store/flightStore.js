@@ -93,8 +93,24 @@ export const useFlightStore = create(
       selectedFlight: null,
       traceId: null,
       resultIndex: null,
+
+
       fareQuote: null,
+
+      // ✅ Round Trip Fare Quote
+      outboundFareQuote: null,
+      inboundFareQuote: null,
+
       isLcc: null,
+      // ✅ Round Trip state
+      outboundFlights: [],
+      inboundFlights: [],
+
+      selectedOutboundFlight: null,
+      selectedInboundFlight: null,
+
+      outboundResultIndex: null,
+      inboundResultIndex: null,
 
       // ✅ Search / passenger state
       passengerCount: 1,
@@ -111,6 +127,14 @@ export const useFlightStore = create(
       selectedSeats: [],
       selectedBaggage: [],
       ssrTotal: 0,
+      // ✅ Round Trip SSR selections
+      outboundSelectedSeats: [],
+      outboundSelectedMeals: [],
+      outboundSelectedBaggage: [],
+
+      inboundSelectedSeats: [],
+      inboundSelectedMeals: [],
+      inboundSelectedBaggage: [],
 
       // Optional booking storage
       bookings: [],
@@ -137,6 +161,45 @@ export const useFlightStore = create(
           lastSearchAt: Date.now(),
         })),
 
+      // ✅ Round Trip search results
+      setRoundTripFlights: ({
+        outboundFlights,
+        inboundFlights,
+        traceId,
+        pagination,
+        resetSelection = false,
+      }) =>
+        set((state) => ({
+          outboundFlights: Array.isArray(outboundFlights)
+            ? outboundFlights
+            : [],
+
+          inboundFlights: Array.isArray(inboundFlights)
+            ? inboundFlights
+            : [],
+
+          traceId: traceId || null,
+
+          ...(resetSelection
+            ? {
+              selectedOutboundFlight: null,
+              selectedInboundFlight: null,
+              outboundResultIndex: null,
+              inboundResultIndex: null,
+            }
+            : {}),
+
+          pagination: pagination
+            ? {
+              ...initialFlightPagination,
+              ...pagination,
+            }
+            : state.pagination,
+
+          lastSearchAt: Date.now(),
+        })),
+
+
       setFlight: (flight) =>
         set({
           selectedFlight: flight || null,
@@ -150,12 +213,116 @@ export const useFlightStore = create(
           selectedBaggage: [],
           ssrTotal: 0,
         }),
+      // ✅ Select outbound flight
+      setOutboundFlight: (flight) =>
+        set({
+          selectedOutboundFlight: flight || null,
+
+          outboundResultIndex:
+            flight?.ResultIndex !== undefined
+              ? flight.ResultIndex
+              : null,
+
+          // ✅ old outbound Fare Quote + SSR clear
+          outboundFareQuote: null,
+
+          outboundSelectedSeats: [],
+          outboundSelectedMeals: [],
+          outboundSelectedBaggage: [],
+        }),
+
+      // ✅ Select inbound / return flight
+      setInboundFlight: (flight) =>
+        set({
+          selectedInboundFlight: flight || null,
+
+          inboundResultIndex:
+            flight?.ResultIndex !== undefined
+              ? flight.ResultIndex
+              : null,
+
+          // ✅ old return Fare Quote + SSR clear
+          inboundFareQuote: null,
+
+          inboundSelectedSeats: [],
+          inboundSelectedMeals: [],
+          inboundSelectedBaggage: [],
+        }),
 
       setFareQuote: (fareQuote) =>
         set({
           fareQuote,
           flightValidation: normalizeFlightValidation(fareQuote),
         }),
+      // ✅ Round Trip Fare Quote
+      setRoundTripFareQuotes: ({
+        outboundFareQuote,
+        inboundFareQuote,
+      }) => {
+        const outboundValidation =
+          normalizeFlightValidation(outboundFareQuote);
+
+        const inboundValidation =
+          normalizeFlightValidation(inboundFareQuote);
+
+        set({
+          fareQuote: null,
+          outboundFareQuote:
+            outboundFareQuote || null,
+
+          inboundFareQuote:
+            inboundFareQuote || null,
+
+          flightValidation: {
+            isPanRequiredAtBook:
+              outboundValidation.isPanRequiredAtBook ||
+              inboundValidation.isPanRequiredAtBook,
+
+            isPanRequiredAtTicket:
+              outboundValidation.isPanRequiredAtTicket ||
+              inboundValidation.isPanRequiredAtTicket,
+
+            isPassportRequiredAtBook:
+              outboundValidation.isPassportRequiredAtBook ||
+              inboundValidation.isPassportRequiredAtBook,
+
+            isPassportRequiredAtTicket:
+              outboundValidation.isPassportRequiredAtTicket ||
+              inboundValidation.isPassportRequiredAtTicket,
+
+            isPassportFullDetailRequiredAtBook:
+              outboundValidation.isPassportFullDetailRequiredAtBook ||
+              inboundValidation.isPassportFullDetailRequiredAtBook,
+
+            isGSTMandatory:
+              outboundValidation.isGSTMandatory ||
+              inboundValidation.isGSTMandatory,
+
+            isPriceChanged:
+              outboundValidation.isPriceChanged ||
+              inboundValidation.isPriceChanged,
+
+            isTimeChanged:
+              outboundValidation.isTimeChanged ||
+              inboundValidation.isTimeChanged,
+
+            flightDetailChangeInfo: [
+              outboundValidation.flightDetailChangeInfo,
+              inboundValidation.flightDetailChangeInfo,
+            ]
+              .filter(Boolean)
+              .join(" | "),
+
+            isSeatMandatory:
+              outboundValidation.isSeatMandatory ||
+              inboundValidation.isSeatMandatory,
+
+            isMealMandatory:
+              outboundValidation.isMealMandatory ||
+              inboundValidation.isMealMandatory,
+          },
+        });
+      },
 
       setPassengerCount: (count) => set({ passengerCount: Number(count) || 1 }),
 
@@ -180,6 +347,41 @@ export const useFlightStore = create(
       setSelectedSeats: (seats) => set({ selectedSeats: seats || [] }),
 
       setSelectedBaggage: (baggage) => set({ selectedBaggage: baggage || [] }),
+
+
+      // ✅ Round Trip Outbound SSR
+      setOutboundSelectedSeats: (seats) =>
+        set({
+          outboundSelectedSeats: seats || [],
+        }),
+
+      setOutboundSelectedMeals: (meals) =>
+        set({
+          outboundSelectedMeals: meals || [],
+        }),
+
+      setOutboundSelectedBaggage: (baggage) =>
+        set({
+          outboundSelectedBaggage: baggage || [],
+        }),
+
+      // ✅ Round Trip Inbound SSR
+      setInboundSelectedSeats: (seats) =>
+        set({
+          inboundSelectedSeats: seats || [],
+        }),
+
+      setInboundSelectedMeals: (meals) =>
+        set({
+          inboundSelectedMeals: meals || [],
+        }),
+
+      setInboundSelectedBaggage: (baggage) =>
+        set({
+          inboundSelectedBaggage: baggage || [],
+        }),
+
+
 
       calculateSSRTotal: () => {
         const { selectedSeats, selectedMeals, selectedBaggage } = get();
@@ -247,7 +449,19 @@ export const useFlightStore = create(
           traceId: null,
           resultIndex: null,
           fareQuote: null,
+          outboundFareQuote: null,
+          inboundFareQuote: null,
           isLcc: null,
+
+          // ✅ Round Trip reset
+          outboundFlights: [],
+          inboundFlights: [],
+
+          selectedOutboundFlight: null,
+          selectedInboundFlight: null,
+
+          outboundResultIndex: null,
+          inboundResultIndex: null,
 
           passengerCount: 1,
           searchTravellers: initialSearchTravellers,
@@ -261,6 +475,13 @@ export const useFlightStore = create(
           selectedSeats: [],
           selectedBaggage: [],
           ssrTotal: 0,
+          outboundSelectedSeats: [],
+          outboundSelectedMeals: [],
+          outboundSelectedBaggage: [],
+
+          inboundSelectedSeats: [],
+          inboundSelectedMeals: [],
+          inboundSelectedBaggage: [],
         }),
 
       resetBooking: () =>
@@ -268,7 +489,16 @@ export const useFlightStore = create(
           selectedFlight: null,
           resultIndex: null,
           fareQuote: null,
+
+          outboundFareQuote: null,
+          inboundFareQuote: null,
+
           isLcc: null,
+          selectedOutboundFlight: null,
+          selectedInboundFlight: null,
+
+          outboundResultIndex: null,
+          inboundResultIndex: null,
 
           flightValidation: initialFlightValidation,
 
@@ -276,6 +506,13 @@ export const useFlightStore = create(
           selectedSeats: [],
           selectedBaggage: [],
           ssrTotal: 0,
+          outboundSelectedSeats: [],
+          outboundSelectedMeals: [],
+          outboundSelectedBaggage: [],
+
+          inboundSelectedSeats: [],
+          inboundSelectedMeals: [],
+          inboundSelectedBaggage: [],
         }),
     }),
     {
@@ -298,16 +535,53 @@ export const useFlightStore = create(
         resultIndex: state.resultIndex,
         isLcc: state.isLcc,
         lastSearchAt: state.lastSearchAt,
+        // ✅ Round Trip selected flights
+        selectedOutboundFlight:
+          state.selectedOutboundFlight,
 
+        selectedInboundFlight:
+          state.selectedInboundFlight,
+
+        outboundResultIndex:
+          state.outboundResultIndex,
+
+        inboundResultIndex:
+          state.inboundResultIndex,
         // ✅ ADD THESE FOR SSR REFRESH
         fareQuote: state.fareQuote,
-        flightValidation: state.flightValidation,
+
+        // ✅ Round Trip Fare Quote
+        outboundFareQuote:
+          state.outboundFareQuote,
+
+        inboundFareQuote:
+          state.inboundFareQuote,
+
+        flightValidation:
+          state.flightValidation,
 
         // ✅ selections bhi refresh ke baad preserve rahengi
         selectedSeats: state.selectedSeats,
         selectedMeals: state.selectedMeals,
         selectedBaggage: state.selectedBaggage,
         ssrTotal: state.ssrTotal,
+        outboundSelectedSeats:
+          state.outboundSelectedSeats,
+
+        outboundSelectedMeals:
+          state.outboundSelectedMeals,
+
+        outboundSelectedBaggage:
+          state.outboundSelectedBaggage,
+
+        inboundSelectedSeats:
+          state.inboundSelectedSeats,
+
+        inboundSelectedMeals:
+          state.inboundSelectedMeals,
+
+        inboundSelectedBaggage:
+          state.inboundSelectedBaggage,
       }),
     },
   ),

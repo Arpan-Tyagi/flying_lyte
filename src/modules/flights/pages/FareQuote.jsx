@@ -58,468 +58,895 @@ const formatTime = (value) => {
   });
 };
 
-  const formatDuration = (minutes) => {
-    const total = Number(minutes || 0);
+const formatDuration = (minutes) => {
+  const total = Number(minutes || 0);
 
-    if (!total) return "-";
+  if (!total) return "-";
 
-    const h = Math.floor(total / 60);
-    const m = total % 60;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
 
-    return `${h}h ${m}m`;
+  return `${h}h ${m}m`;
+};
+
+const getPricing = (fareQuote) => {
+  const pricing = fareQuote?.Pricing || {};
+  const fare = fareQuote?.Fare || {};
+
+  const flightFare = Number(
+    fare?.PublishedFare ||
+    fareQuote?.PublishedFare ||
+    0,
+  );
+  // const convenienceFee = Number(
+  //   pricing?.ConvenienceFee || fareQuote?.ConvenienceFee || 0,
+  // );
+
+  // const totalPayable = Number(
+  //   pricing?.TotalPayable ||
+  //     fareQuote?.TotalPayable ||
+  //     flightFare + convenienceFee ||
+  //     0,
+  // );
+
+  // TEMP: Convenience fee disabled for verification
+  const convenienceFee = 0;
+
+  const totalPayable = flightFare;
+
+  return {
+    flightFare,
+    convenienceFee,
+    totalPayable,
   };
+};
 
-  const getPricing = (fareQuote) => {
-    const pricing = fareQuote?.Pricing || {};
-    const fare = fareQuote?.Fare || {};
+const FareQuote = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    const flightFare = Number(
-      fare?.PublishedFare ||
-      fareQuote?.PublishedFare ||
-      0,
+  const {
+    traceId,
+
+    // One Way
+    resultIndex,
+    selectedFlight,
+    fareQuote: storedFareQuote,
+    setFareQuote,
+
+    // Round Trip
+    outboundResultIndex,
+    inboundResultIndex,
+    selectedOutboundFlight,
+    selectedInboundFlight,
+    outboundFareQuote: storedOutboundFareQuote,
+    inboundFareQuote: storedInboundFareQuote,
+    setRoundTripFareQuotes,
+
+    lastSearchPayload,
+    isTraceExpired,
+  } = useFlightStore();
+
+  const isRoundTrip =
+    lastSearchPayload?.trip_type === "roundtrip";
+
+  const { token } = useAuthStore();
+
+  const [fareQuote, setLocalFareQuote] =
+    useState(storedFareQuote || null);
+
+  const [
+    outboundFareQuote,
+    setLocalOutboundFareQuote,
+  ] = useState(
+    storedOutboundFareQuote || null,
+  );
+
+  const [
+    inboundFareQuote,
+    setLocalInboundFareQuote,
+  ] = useState(
+    storedInboundFareQuote || null,
+  );
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const sessionMissing = isRoundTrip
+    ? (
+      !traceId ||
+      !hasValidResultIndex(
+        outboundResultIndex,
+      ) ||
+      !hasValidResultIndex(
+        inboundResultIndex,
+      ) ||
+      !selectedOutboundFlight ||
+      !selectedInboundFlight
+    )
+    : (
+      !traceId ||
+      !hasValidResultIndex(
+        resultIndex,
+      ) ||
+      !selectedFlight
     );
-    // const convenienceFee = Number(
-    //   pricing?.ConvenienceFee || fareQuote?.ConvenienceFee || 0,
-    // );
 
-    // const totalPayable = Number(
-    //   pricing?.TotalPayable ||
-    //     fareQuote?.TotalPayable ||
-    //     flightFare + convenienceFee ||
-    //     0,
-    // );
+  const sessionExpired =
+    typeof isTraceExpired === "function" && isTraceExpired();
 
-    // TEMP: Convenience fee disabled for verification
-    const convenienceFee = 0;
+  useEffect(() => {
+    if (!token) {
+      navigate("/login", {
+        replace: true,
+        state: { redirectTo: location.pathname },
+      });
 
-    const totalPayable = flightFare;
+      return;
+    }
 
-    return {
-      flightFare,
-      convenienceFee,
-      totalPayable,
-    };
-  };
+    if (sessionMissing) {
+      navigate("/", { replace: true });
+    }
+  }, [token, sessionMissing, navigate, location.pathname]);
 
-  const FareQuote = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+  useEffect(() => {
+    if (!token || sessionMissing) {
+      setLoading(false);
+      return;
+    }
 
-    const { traceId, resultIndex, setFareQuote, selectedFlight, isTraceExpired } =
-      useFlightStore();
+    if (sessionExpired) {
+      setLoading(false);
+      setError(
+        "Your flight search session is older than 15 minutes. Please search again before booking.",
+      );
+      return;
+    }
 
-    const { token } = useAuthStore();
+    let isMounted = true;
 
-    const [fareQuote, setLocalFareQuote] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const fetchQuoteForResultIndex = async (
+      currentResultIndex,
+    ) => {
+      const res = await publicApi.post(
+        "/api/airlines/fare-quote/",
+        {
+          TraceId: traceId,
+          ResultIndex: currentResultIndex,
+        },
+      );
 
-    const sessionMissing =
-      !traceId || !hasValidResultIndex(resultIndex) || !selectedFlight;
+      const data = res?.data;
 
-    const sessionExpired =
-      typeof isTraceExpired === "function" && isTraceExpired();
+      const {
+        errorCode,
+        errorMessage,
+      } = getResponseError(data);
 
-    useEffect(() => {
-      if (!token) {
-        navigate("/login", {
-          replace: true,
-          state: { redirectTo: location.pathname },
-        });
-
-        return;
-      }
-
-      if (sessionMissing) {
-        navigate("/", { replace: true });
-      }
-    }, [token, sessionMissing, navigate, location.pathname]);
-
-    useEffect(() => {
-      if (!token || sessionMissing) {
-        setLoading(false);
-        return;
-      }
-
-      if (sessionExpired) {
-        setLoading(false);
-        setError(
-          "Your flight search session is older than 15 minutes. Please search again before booking.",
+      if (errorCode === 6) {
+        throw new Error(
+          "Invalid token. Please search again.",
         );
-        return;
       }
 
-      let isMounted = true;
+      if (
+        errorCode &&
+        errorCode !== 0
+      ) {
+        throw new Error(
+          errorMessage ||
+          "Unable to fetch fare quote.",
+        );
+      }
 
-      const fetchFareQuote = async () => {
-        try {
-          setLoading(true);
-          setError("");
+      const results =
+        getFareQuoteResult(data);
 
-          const res = await publicApi.post("/api/airlines/fare-quote/", {
-            TraceId: traceId,
-            ResultIndex: resultIndex,
+      if (!results) {
+        throw new Error(
+          "Fare quote result not found.",
+        );
+      }
+
+      return results;
+    };
+
+    const fetchFareQuote = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        // ==========================
+        // ROUND TRIP
+        // ==========================
+
+        if (isRoundTrip) {
+          const [
+            outboundQuote,
+            inboundQuote,
+          ] = await Promise.all([
+            fetchQuoteForResultIndex(
+              outboundResultIndex,
+            ),
+            fetchQuoteForResultIndex(
+              inboundResultIndex,
+            ),
+          ]);
+
+          if (!isMounted) return;
+
+          setLocalOutboundFareQuote(
+            outboundQuote,
+          );
+
+          setLocalInboundFareQuote(
+            inboundQuote,
+          );
+
+          setLocalFareQuote(null);
+
+          setRoundTripFareQuotes({
+            outboundFareQuote:
+              outboundQuote,
+
+            inboundFareQuote:
+              inboundQuote,
           });
 
-          const data = res?.data;
-          const { errorCode, errorMessage } = getResponseError(data);
-
-          if (errorCode === 6) {
-            throw new Error("Invalid token. Please search again.");
-          }
-
-          if (errorCode && errorCode !== 0) {
-            throw new Error(errorMessage || "Unable to fetch fare quote.");
-          }
-
-          const results = getFareQuoteResult(data);
-
-          if (!results) {
-            throw new Error("Fare quote result not found.");
-          }
-
-          if (isMounted) {
-            setLocalFareQuote(results);
-
-            // ✅ Saves FareQuote + PAN/Passport/GST/SSR validation flags in Zustand
-            setFareQuote(results);
-          }
-        } catch (err) {
-          console.error("FareQuote error:", err);
-
-          if (isMounted) {
-            setError(
-              err?.response?.data?.message ||
-              err?.response?.data?.error ||
-              err?.message ||
-              "Unable to fetch fare quote.",
-            );
-          }
-        } finally {
-          if (isMounted) {
-            setLoading(false);
-          }
+          return;
         }
-      };
 
-      fetchFareQuote();
+        // ==========================
+        // ONE WAY
+        // Existing behaviour
+        // ==========================
 
-      return () => {
-        isMounted = false;
-      };
-    }, [
-      token,
-      traceId,
-      resultIndex,
-      selectedFlight,
-      sessionMissing,
-      sessionExpired,
-      setFareQuote,
-    ]);
+        const quote =
+          await fetchQuoteForResultIndex(
+            resultIndex,
+          );
 
-    const segmentGroups = useMemo(() => {
-      return getSegmentGroups(fareQuote);
-    }, [fareQuote]);
+        if (!isMounted) return;
 
-    const allSegments = useMemo(() => {
-      return segmentGroups.flat();
-    }, [segmentGroups]);
+        setLocalFareQuote(quote);
 
-    const pricing = getPricing(fareQuote);
-
-    const isPriceChanged = toBool(
-      fareQuote?.IsPriceChanged || fareQuote?.ispricechanged,
-    );
-
-    const isTimeChanged = toBool(
-      fareQuote?.IsTimeChanged || fareQuote?.istimechanged,
-    );
-
-    const flightDetailChangeInfo =
-      fareQuote?.FlightDetailChangeInfo ||
-      fareQuote?.flightDetailChangeInfo ||
-      "";
-
-    const isGSTMandatory = toBool(fareQuote?.IsGSTMandatory);
-
-    const isPanRequired =
-      toBool(fareQuote?.IsPanRequiredAtBook) ||
-      toBool(fareQuote?.IsPanRequiredAtTicket);
-
-    const isPassportRequired =
-      toBool(fareQuote?.IsPassportRequiredAtBook) ||
-      toBool(fareQuote?.IsPassportRequiredAtTicket);
-
-    const isSeatMandatory = toBool(
-      fareQuote?.isseatmandatory || fareQuote?.IsSeatMandatory,
-    );
-
-    const isMealMandatory = toBool(
-      fareQuote?.ismealmandatory || fareQuote?.IsMealMandatory,
-    );
-
-    const handleSearchAgain = () => {
-      navigate("/", { replace: true });
-    };
-
-    const handleContinue = () => {
-      if (sessionMissing) {
-        setError("Flight session expired. Please search flights again.");
-        return;
-      }
-
-      if (sessionExpired) {
-        setError(
-          "Your flight search session is older than 15 minutes. Please search again before booking.",
+        setFareQuote(quote);
+      } catch (err) {
+        console.error(
+          "FareQuote error:",
+          err,
         );
-        return;
-      }
 
-      if (!fareQuote) {
-        setError("Fare quote missing. Please fetch fare quote again.");
-        return;
+        if (isMounted) {
+          setError(
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message ||
+            "Unable to fetch fare quote.",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-
-      navigate("/ssr");
     };
 
-    if (loading) {
-      return (
-        <div className="min-h-screen bg-(--bg-main) flex flex-col items-center justify-center gap-4 text-(--text-main)">
-          <div className="w-10 h-10 border-4 border-gray-700 border-t-(--gold-main) rounded-full animate-spin" />
-          <p className="text-sm text-(--text-muted)">Fetching Fare Quote...</p>
-        </div>
-      );
+    fetchFareQuote();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    token,
+    traceId,
+
+    resultIndex,
+    outboundResultIndex,
+    inboundResultIndex,
+
+    selectedFlight,
+    selectedOutboundFlight,
+    selectedInboundFlight,
+
+    isRoundTrip,
+
+    sessionMissing,
+    sessionExpired,
+
+    setFareQuote,
+    setRoundTripFareQuotes,
+  ]);
+
+  const segmentGroups = useMemo(() => {
+    return getSegmentGroups(fareQuote);
+  }, [fareQuote]);
+
+  const allSegments = useMemo(() => {
+    return segmentGroups.flat();
+  }, [segmentGroups]);
+
+  const pricing = getPricing(fareQuote);
+  const outboundPricing =
+    getPricing(outboundFareQuote);
+
+  const inboundPricing =
+    getPricing(inboundFareQuote);
+
+  const roundTripPricing = {
+    outboundFare:
+      outboundPricing.flightFare,
+
+    inboundFare:
+      inboundPricing.flightFare,
+
+    totalPayable:
+      outboundPricing.totalPayable +
+      inboundPricing.totalPayable,
+  };
+
+  const isPriceChanged = toBool(
+    fareQuote?.IsPriceChanged || fareQuote?.ispricechanged,
+  );
+
+  const isTimeChanged = toBool(
+    fareQuote?.IsTimeChanged || fareQuote?.istimechanged,
+  );
+
+  const flightDetailChangeInfo =
+    fareQuote?.FlightDetailChangeInfo ||
+    fareQuote?.flightDetailChangeInfo ||
+    "";
+
+  const isGSTMandatory = toBool(fareQuote?.IsGSTMandatory);
+
+  const isPanRequired =
+    toBool(fareQuote?.IsPanRequiredAtBook) ||
+    toBool(fareQuote?.IsPanRequiredAtTicket);
+
+  const isPassportRequired =
+    toBool(fareQuote?.IsPassportRequiredAtBook) ||
+    toBool(fareQuote?.IsPassportRequiredAtTicket);
+
+  const isSeatMandatory = toBool(
+    fareQuote?.isseatmandatory || fareQuote?.IsSeatMandatory,
+  );
+
+  const isMealMandatory = toBool(
+    fareQuote?.ismealmandatory || fareQuote?.IsMealMandatory,
+  );
+
+  const handleSearchAgain = () => {
+    navigate("/", { replace: true });
+  };
+
+  const handleContinue = () => {
+    if (sessionMissing) {
+      setError("Flight session expired. Please search flights again.");
+      return;
     }
 
-    if (error && !fareQuote) {
-      return (
-        <div className="min-h-screen bg-(--bg-main) text-(--text-main) flex flex-col items-center justify-center gap-4 px-4">
-          <div className="text-center text-red-400">{error}</div>
-
-          <button
-            type="button"
-            onClick={handleSearchAgain}
-            className="px-6 py-3 rounded-xl font-semibold text-black bg-linear-to-r from-start to-end"
-          >
-            Search Flights Again
-          </button>
-        </div>
+    if (sessionExpired) {
+      setError(
+        "Your flight search session is older than 15 minutes. Please search again before booking.",
       );
+      return;
     }
+
+    if (!fareQuote) {
+      setError("Fare quote missing. Please fetch fare quote again.");
+      return;
+    }
+
+    navigate("/ssr");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-(--bg-main) flex flex-col items-center justify-center gap-4 text-(--text-main)">
+        <div className="w-10 h-10 border-4 border-gray-700 border-t-(--gold-main) rounded-full animate-spin" />
+        <p className="text-sm text-(--text-muted)">Fetching Fare Quote...</p>
+      </div>
+    );
+  }
+
+  const hasFareQuote = isRoundTrip
+    ? Boolean(
+      outboundFareQuote &&
+      inboundFareQuote
+    )
+    : Boolean(fareQuote);
+
+  if (error && !hasFareQuote) {
 
     return (
-      <div className="min-h-screen bg-(--bg-main) text-(--text-main)">
-        <div className="max-w-6xl mx-auto px-4 py-24 space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold text-(--gold-main)">Fare Quote</h1>
+      <div className="min-h-screen bg-(--bg-main) text-(--text-main) flex flex-col items-center justify-center gap-4 px-4">
+        <div className="text-center text-red-400">{error}</div>
 
-            <p className="text-sm text-(--text-muted)">
-              Review the final price before continuing booking.
+        <button
+          type="button"
+          onClick={handleSearchAgain}
+          className="px-6 py-3 rounded-xl font-semibold text-black bg-linear-to-r from-start to-end"
+        >
+          Search Flights Again
+        </button>
+      </div>
+    );
+  }
+  if (isRoundTrip) {
+    const renderQuoteCard = (
+      label,
+      quote,
+    ) => {
+      const groups =
+        getSegmentGroups(quote);
+
+      const segments =
+        groups.flat();
+
+      const quotePricing =
+        getPricing(quote);
+
+      return (
+        <div className="rounded-2xl border border-(--border-soft) bg-(--bg-card) p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--gold-main)">
+                {label}
+              </p>
+
+              <p className="mt-1 text-sm text-(--text-muted)">
+                Final airline fare quote
+              </p>
+            </div>
+
+            <p className="text-lg font-bold text-(--gold-soft)">
+              ₹
+              {quotePricing.totalPayable.toLocaleString(
+                "en-IN",
+                {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                },
+              )}
             </p>
           </div>
 
-          {(isPriceChanged || isTimeChanged || flightDetailChangeInfo) && (
-            <div className="bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 p-4 rounded-xl text-sm">
-              <p className="font-semibold mb-1">Flight details updated</p>
+          <div className="space-y-3">
+            {segments.length ? (
+              segments.map(
+                (segment, index) => {
+                  const airline =
+                    segment?.Airline || {};
 
-              {isPriceChanged && (
-                <p>Price has changed. Updated fare will be used.</p>
-              )}
+                  const origin =
+                    segment?.Origin || {};
 
-              {isTimeChanged && (
-                <p>Flight time has changed. Please review timing.</p>
-              )}
+                  const destination =
+                    segment?.Destination || {};
 
-              {flightDetailChangeInfo && (
-                <p>Change info: {flightDetailChangeInfo}</p>
-              )}
-            </div>
-          )}
+                  return (
+                    <div
+                      key={`${label}-${index}`}
+                      className="rounded-xl border border-(--border-soft) bg-(--bg-main) p-4"
+                    >
+                      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                        <div>
+                          <p className="font-semibold text-(--gold-soft)">
+                            {airline?.AirlineName ||
+                              "Airline"}
+                          </p>
 
-          {(isGSTMandatory ||
-            isPanRequired ||
-            isPassportRequired ||
-            isSeatMandatory ||
-            isMealMandatory) && (
-              <div className="bg-(--bg-card) border border-(--border-soft) rounded-xl p-4 text-sm">
-                <h2 className="font-semibold text-(--gold-soft) mb-3">
-                  Booking Requirements
-                </h2>
+                          <p className="text-xs text-(--text-muted)">
+                            {airline?.AirlineCode ||
+                              ""}
+                            {airline?.FlightNumber
+                              ? ` ${airline.FlightNumber}`
+                              : ""}
+                          </p>
+                        </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {isGSTMandatory && (
-                    <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
-                      GST Required
-                    </span>
-                  )}
+                        <div className="flex items-center justify-between gap-5 sm:justify-end">
+                          <div>
+                            <p className="font-bold">
+                              {origin?.Airport
+                                ?.AirportCode ||
+                                "-"}
+                            </p>
 
-                  {isPanRequired && (
-                    <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
-                      PAN Required
-                    </span>
-                  )}
+                            <p className="text-xs text-(--text-muted)">
+                              {formatTime(
+                                origin?.DepTime,
+                              )}
+                            </p>
+                          </div>
 
-                  {isPassportRequired && (
-                    <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
-                      Passport Required
-                    </span>
-                  )}
+                          <span className="text-(--gold-main)">
+                            ✈
+                          </span>
 
-                  {isSeatMandatory && (
-                    <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
-                      Seat Required
-                    </span>
-                  )}
+                          <div className="text-right">
+                            <p className="font-bold">
+                              {destination
+                                ?.Airport
+                                ?.AirportCode ||
+                                "-"}
+                            </p>
 
-                  {isMealMandatory && (
-                    <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
-                      Meal Required
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
+                            <p className="text-xs text-(--text-muted)">
+                              {formatTime(
+                                destination
+                                  ?.ArrTime,
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-          <div className="space-y-4">
-            {allSegments.length === 0 ? (
-              <div className="bg-(--bg-card) border border-(--border-soft) rounded-xl p-5 text-sm text-(--text-muted)">
-                No segment details available.
-              </div>
+                      <div className="mt-3 text-xs text-(--text-muted)">
+                        Baggage:{" "}
+                        {segment?.Baggage ||
+                          "-"}{" "}
+                        | Cabin:{" "}
+                        {segment?.CabinBaggage ||
+                          "-"}
+                      </div>
+                    </div>
+                  );
+                },
+              )
             ) : (
-              allSegments.map((segment, index) => {
-                const airline = segment?.Airline || {};
-                const origin = segment?.Origin || {};
-                const destination = segment?.Destination || {};
-
-                return (
-                  <div
-                    key={`${airline?.AirlineCode || "air"}-${airline?.FlightNumber || index
-                      }-${index}`}
-                    className="bg-(--bg-card) border border-(--border-soft) rounded-xl p-5"
-                  >
-                    <div className="flex flex-col md:flex-row justify-between gap-6">
-                      <div>
-                        <p className="font-semibold text-(--gold-soft)">
-                          {airline?.AirlineName || "Airline"}
-                        </p>
-
-                        <p className="text-sm text-(--text-muted)">
-                          {airline?.AirlineCode || ""}
-                          {airline?.AirlineCode && airline?.FlightNumber
-                            ? " "
-                            : ""}
-                          {airline?.FlightNumber || ""}
-                        </p>
-
-                        <span
-                          className={`inline-block mt-2 text-xs px-2 py-1 rounded ${fareQuote?.IsLCC
-                            ? "bg-yellow-500/20 text-yellow-400"
-                            : "bg-green-500/20 text-green-400"
-                            }`}
-                        >
-                          {fareQuote?.IsLCC ? "LCC" : "Full Service"}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-6">
-                        <div className="text-center">
-                          <p className="text-lg font-bold">
-                            {origin?.Airport?.AirportCode || "-"}
-                          </p>
-
-                          <p className="text-xs text-(--text-muted)">
-                            {formatTime(origin?.DepTime)}
-                          </p>
-                        </div>
-
-                        <div className="text-(--gold-main)">✈</div>
-
-                        <div className="text-center">
-                          <p className="text-lg font-bold">
-                            {destination?.Airport?.AirportCode || "-"}
-                          </p>
-
-                          <p className="text-xs text-(--text-muted)">
-                            {formatTime(destination?.ArrTime)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-sm text-(--text-muted)">
-                        Duration: {formatDuration(segment?.Duration)}
-                      </div>
-                    </div>
-
-                    <div className="mt-3 text-xs text-(--text-muted)">
-                      Baggage: {segment?.Baggage || "-"} | Cabin:{" "}
-                      {segment?.CabinBaggage || "-"}
-                    </div>
-                  </div>
-                );
-              })
+              <p className="text-sm text-(--text-muted)">
+                No segment details available.
+              </p>
             )}
           </div>
+        </div>
+      );
+    };
 
-          <div className="bg-(--bg-card) border border-(--border-soft) rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-(--gold-soft) mb-4">
-              Fare Breakdown
-            </h2>
+    return (
+      <div className="min-h-screen bg-(--bg-main) text-(--text-main)">
+        <div className="mx-auto max-w-6xl space-y-6 px-4 py-24">
 
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Flight Fare</span>
-                <span>₹ {pricing.flightFare.toFixed(2)}</span>
-              </div>
+          <div>
+            <h1 className="text-2xl font-bold text-(--gold-main) sm:text-3xl">
+              Round Trip Fare Quote
+            </h1>
 
-              {/* <div className="flex justify-between">
-              <span>Convenience Fee</span>
-              <span>₹ {pricing.convenienceFee.toFixed(2)}</span>
-            </div> */}
-
-              <div className="border-t border-(--border-soft) pt-3 flex justify-between font-bold">
-                <span>Total Payable</span>
-                <span>₹ {pricing.totalPayable.toFixed(2)}</span>
-              </div>
-            </div>
+            <p className="mt-1 text-sm text-(--text-muted)">
+              Review the final fares for both journeys.
+            </p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 text-red-400 border border-red-500/20 p-3 rounded-lg text-sm">
+            <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
               {error}
             </div>
           )}
+
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            {renderQuoteCard(
+              "Outbound",
+              outboundFareQuote,
+            )}
+
+            {renderQuoteCard(
+              "Return",
+              inboundFareQuote,
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-[#E6B35C]/25 bg-(--bg-card) p-5">
+            <h2 className="font-semibold text-(--gold-soft)">
+              Fare Breakdown
+            </h2>
+
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="flex justify-between gap-4">
+                <span>
+                  Outbound Fare
+                </span>
+
+                <span>
+                  ₹{" "}
+                  {roundTripPricing.outboundFare.toFixed(
+                    2,
+                  )}
+                </span>
+              </div>
+
+              <div className="flex justify-between gap-4">
+                <span>
+                  Return Fare
+                </span>
+
+                <span>
+                  ₹{" "}
+                  {roundTripPricing.inboundFare.toFixed(
+                    2,
+                  )}
+                </span>
+              </div>
+
+              <div className="flex justify-between gap-4 border-t border-(--border-soft) pt-3 text-base font-bold">
+                <span>
+                  Total Payable
+                </span>
+
+                <span className="text-(--gold-soft)">
+                  ₹{" "}
+                  {roundTripPricing.totalPayable.toFixed(
+                    2,
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="sticky bottom-0 bg-(--bg-card) border-t border-(--border-soft)">
-          <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="sticky bottom-0 border-t border-(--border-soft) bg-(--bg-card)">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 md:flex-row">
+
             <div className="text-lg font-bold text-(--gold-main)">
-              ₹ {pricing.totalPayable.toFixed(2)}
+              ₹{" "}
+              {roundTripPricing.totalPayable.toFixed(
+                2,
+              )}
             </div>
 
-            <div className="flex w-full md:w-auto gap-3">
+            <div className="flex w-full gap-3 md:w-auto">
               <button
                 type="button"
-                onClick={() => navigate("/fare-rule")}
-                className="w-full md:w-auto px-6 py-3 rounded-xl font-semibold border border-(--border-soft)"
+                onClick={() =>
+                  navigate("/fare-rule")
+                }
+                className="w-full rounded-xl border border-(--border-soft) px-6 py-3 font-semibold md:w-auto"
               >
                 Back
               </button>
 
               <button
                 type="button"
-                onClick={handleContinue}
-                className="w-full md:w-auto px-8 py-3 rounded-xl font-semibold text-black
-              bg-linear-to-r from-start to-end
-              hover:opacity-90 transition"
+                disabled
+                className="
+                w-full rounded-xl
+                bg-linear-to-r
+                from-start to-end
+                px-8 py-3
+                font-semibold
+                text-black
+                opacity-50
+                cursor-not-allowed
+                md:w-auto
+              "
               >
                 Continue
               </button>
             </div>
           </div>
+
+          <p className="pb-3 text-center text-xs text-(--text-muted)">
+            Round Trip SSR setup is being completed before booking can continue.
+          </p>
         </div>
       </div>
     );
-  };
+  }
 
-  export default FareQuote;
+  return (
+    <div className="min-h-screen bg-(--bg-main) text-(--text-main)">
+      <div className="max-w-6xl mx-auto px-4 py-24 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-(--gold-main)">Fare Quote</h1>
+
+          <p className="text-sm text-(--text-muted)">
+            Review the final price before continuing booking.
+          </p>
+        </div>
+
+        {(isPriceChanged || isTimeChanged || flightDetailChangeInfo) && (
+          <div className="bg-yellow-500/10 text-yellow-300 border border-yellow-500/20 p-4 rounded-xl text-sm">
+            <p className="font-semibold mb-1">Flight details updated</p>
+
+            {isPriceChanged && (
+              <p>Price has changed. Updated fare will be used.</p>
+            )}
+
+            {isTimeChanged && (
+              <p>Flight time has changed. Please review timing.</p>
+            )}
+
+            {flightDetailChangeInfo && (
+              <p>Change info: {flightDetailChangeInfo}</p>
+            )}
+          </div>
+        )}
+
+        {(isGSTMandatory ||
+          isPanRequired ||
+          isPassportRequired ||
+          isSeatMandatory ||
+          isMealMandatory) && (
+            <div className="bg-(--bg-card) border border-(--border-soft) rounded-xl p-4 text-sm">
+              <h2 className="font-semibold text-(--gold-soft) mb-3">
+                Booking Requirements
+              </h2>
+
+              <div className="flex flex-wrap gap-2">
+                {isGSTMandatory && (
+                  <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
+                    GST Required
+                  </span>
+                )}
+
+                {isPanRequired && (
+                  <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
+                    PAN Required
+                  </span>
+                )}
+
+                {isPassportRequired && (
+                  <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
+                    Passport Required
+                  </span>
+                )}
+
+                {isSeatMandatory && (
+                  <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
+                    Seat Required
+                  </span>
+                )}
+
+                {isMealMandatory && (
+                  <span className="px-3 py-1 rounded-full bg-(--gold-soft) text-black text-xs">
+                    Meal Required
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+        <div className="space-y-4">
+          {allSegments.length === 0 ? (
+            <div className="bg-(--bg-card) border border-(--border-soft) rounded-xl p-5 text-sm text-(--text-muted)">
+              No segment details available.
+            </div>
+          ) : (
+            allSegments.map((segment, index) => {
+              const airline = segment?.Airline || {};
+              const origin = segment?.Origin || {};
+              const destination = segment?.Destination || {};
+
+              return (
+                <div
+                  key={`${airline?.AirlineCode || "air"}-${airline?.FlightNumber || index
+                    }-${index}`}
+                  className="bg-(--bg-card) border border-(--border-soft) rounded-xl p-5"
+                >
+                  <div className="flex flex-col md:flex-row justify-between gap-6">
+                    <div>
+                      <p className="font-semibold text-(--gold-soft)">
+                        {airline?.AirlineName || "Airline"}
+                      </p>
+
+                      <p className="text-sm text-(--text-muted)">
+                        {airline?.AirlineCode || ""}
+                        {airline?.AirlineCode && airline?.FlightNumber
+                          ? " "
+                          : ""}
+                        {airline?.FlightNumber || ""}
+                      </p>
+
+                      <span
+                        className={`inline-block mt-2 text-xs px-2 py-1 rounded ${fareQuote?.IsLCC
+                          ? "bg-yellow-500/20 text-yellow-400"
+                          : "bg-green-500/20 text-green-400"
+                          }`}
+                      >
+                        {fareQuote?.IsLCC ? "LCC" : "Full Service"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <p className="text-lg font-bold">
+                          {origin?.Airport?.AirportCode || "-"}
+                        </p>
+
+                        <p className="text-xs text-(--text-muted)">
+                          {formatTime(origin?.DepTime)}
+                        </p>
+                      </div>
+
+                      <div className="text-(--gold-main)">✈</div>
+
+                      <div className="text-center">
+                        <p className="text-lg font-bold">
+                          {destination?.Airport?.AirportCode || "-"}
+                        </p>
+
+                        <p className="text-xs text-(--text-muted)">
+                          {formatTime(destination?.ArrTime)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-sm text-(--text-muted)">
+                      Duration: {formatDuration(segment?.Duration)}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 text-xs text-(--text-muted)">
+                    Baggage: {segment?.Baggage || "-"} | Cabin:{" "}
+                    {segment?.CabinBaggage || "-"}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <div className="bg-(--bg-card) border border-(--border-soft) rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-(--gold-soft) mb-4">
+            Fare Breakdown
+          </h2>
+
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span>Flight Fare</span>
+              <span>₹ {pricing.flightFare.toFixed(2)}</span>
+            </div>
+
+            {/* <div className="flex justify-between">
+              <span>Convenience Fee</span>
+              <span>₹ {pricing.convenienceFee.toFixed(2)}</span>
+            </div> */}
+
+            <div className="border-t border-(--border-soft) pt-3 flex justify-between font-bold">
+              <span>Total Payable</span>
+              <span>₹ {pricing.totalPayable.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-500/10 text-red-400 border border-red-500/20 p-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+      </div>
+
+      <div className="sticky bottom-0 bg-(--bg-card) border-t border-(--border-soft)">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-lg font-bold text-(--gold-main)">
+            ₹ {pricing.totalPayable.toFixed(2)}
+          </div>
+
+          <div className="flex w-full md:w-auto gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/fare-rule")}
+              className="w-full md:w-auto px-6 py-3 rounded-xl font-semibold border border-(--border-soft)"
+            >
+              Back
+            </button>
+
+            <button
+              type="button"
+              onClick={handleContinue}
+              className="w-full md:w-auto px-8 py-3 rounded-xl font-semibold text-black
+              bg-linear-to-r from-start to-end
+              hover:opacity-90 transition"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FareQuote;

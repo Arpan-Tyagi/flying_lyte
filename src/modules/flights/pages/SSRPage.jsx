@@ -7,7 +7,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 const SSRPage = () => {
   const {
     traceId,
+
+    // =========================
+    // ONE WAY
+    // =========================
     resultIndex,
+    fareQuote,
 
     selectedSeats,
     selectedMeals,
@@ -17,11 +22,40 @@ const SSRPage = () => {
     setSelectedSeats,
     setSelectedBaggage,
 
+    // =========================
+    // ROUND TRIP
+    // =========================
+    outboundResultIndex,
+    inboundResultIndex,
+
+    outboundFareQuote,
+    inboundFareQuote,
+
+    outboundSelectedSeats,
+    outboundSelectedMeals,
+    outboundSelectedBaggage,
+
+    inboundSelectedSeats,
+    inboundSelectedMeals,
+    inboundSelectedBaggage,
+
+    setOutboundSelectedSeats,
+    setOutboundSelectedMeals,
+    setOutboundSelectedBaggage,
+
+    setInboundSelectedSeats,
+    setInboundSelectedMeals,
+    setInboundSelectedBaggage,
+
+    lastSearchPayload,
+
+    // =========================
     passengerCount,
-    fareQuote,
     flightValidation,
     isTraceExpired,
   } = useFlightStore();
+  const isRoundTrip =
+    lastSearchPayload?.trip_type === "roundtrip";
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,10 +64,45 @@ const SSRPage = () => {
   const [baggage, setBaggage] = useState([]);
   const [meals, setMeals] = useState([]);
   const [seatRows, setSeatRows] = useState([]);
+  // ✅ Round Trip SSR options
+
+  const [
+    outboundBaggage,
+    setOutboundBaggage,
+  ] = useState([]);
+
+  const [
+    outboundMeals,
+    setOutboundMeals,
+  ] = useState([]);
+
+  const [
+    outboundSeatRows,
+    setOutboundSeatRows,
+  ] = useState([]);
+
+
+  const [
+    inboundBaggage,
+    setInboundBaggage,
+  ] = useState([]);
+
+  const [
+    inboundMeals,
+    setInboundMeals,
+  ] = useState([]);
+
+  const [
+    inboundSeatRows,
+    setInboundSeatRows,
+  ] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [activePassenger, setActivePassenger] = useState(0);
+  // ✅ Round Trip active journey
+  const [activeJourney, setActiveJourney] =
+    useState("outbound");
 
   /* ---------------- Utils ---------------- */
 
@@ -56,8 +125,23 @@ const SSRPage = () => {
     return [];
   };
 
+  const hasValidResultIndex = (value) =>
+    value !== undefined &&
+    value !== null &&
+    value !== "";
+
   const isValidResultIndex =
-    resultIndex !== undefined && resultIndex !== null && resultIndex !== "";
+    hasValidResultIndex(resultIndex);
+
+  const isValidOutboundResultIndex =
+    hasValidResultIndex(
+      outboundResultIndex,
+    );
+
+  const isValidInboundResultIndex =
+    hasValidResultIndex(
+      inboundResultIndex,
+    );
 
   const sessionExpired =
     typeof isTraceExpired === "function" && isTraceExpired();
@@ -103,6 +187,110 @@ const SSRPage = () => {
     if (bag?.Weight) return `${bag.Weight} KG`;
     return bag?.Code || bag?.Description || "Baggage";
   };
+
+  const getRouteLabel = (quote) => {
+    const segments =
+      quote?.Segments?.[0] || [];
+
+    if (!segments.length) {
+      return "- → -";
+    }
+
+    const first = segments[0];
+    const last =
+      segments[segments.length - 1];
+
+    return `${first?.Origin?.Airport?.AirportCode || "-"
+      } → ${last?.Destination?.Airport
+        ?.AirportCode || "-"
+      }`;
+  };
+
+
+  // ==========================================
+  // CURRENT ACTIVE JOURNEY
+  // ==========================================
+
+  const currentFareQuote = isRoundTrip
+    ? activeJourney === "outbound"
+      ? outboundFareQuote
+      : inboundFareQuote
+    : fareQuote;
+
+
+  const currentMeals = isRoundTrip
+    ? activeJourney === "outbound"
+      ? outboundMeals
+      : inboundMeals
+    : meals;
+
+
+  const currentBaggage = isRoundTrip
+    ? activeJourney === "outbound"
+      ? outboundBaggage
+      : inboundBaggage
+    : baggage;
+
+
+  const currentSeatRows = isRoundTrip
+    ? activeJourney === "outbound"
+      ? outboundSeatRows
+      : inboundSeatRows
+    : seatRows;
+
+
+  // ==========================================
+  // CURRENT SELECTIONS
+  // ==========================================
+
+  const currentSelectedSeats = isRoundTrip
+    ? activeJourney === "outbound"
+      ? outboundSelectedSeats
+      : inboundSelectedSeats
+    : selectedSeats;
+
+
+  const currentSelectedMeals = isRoundTrip
+    ? activeJourney === "outbound"
+      ? outboundSelectedMeals
+      : inboundSelectedMeals
+    : selectedMeals;
+
+
+  const currentSelectedBaggage =
+    isRoundTrip
+      ? activeJourney === "outbound"
+        ? outboundSelectedBaggage
+        : inboundSelectedBaggage
+      : selectedBaggage;
+
+
+  // ==========================================
+  // CURRENT SETTERS
+  // ==========================================
+
+  const setCurrentSelectedSeats =
+    isRoundTrip
+      ? activeJourney === "outbound"
+        ? setOutboundSelectedSeats
+        : setInboundSelectedSeats
+      : setSelectedSeats;
+
+
+  const setCurrentSelectedMeals =
+    isRoundTrip
+      ? activeJourney === "outbound"
+        ? setOutboundSelectedMeals
+        : setInboundSelectedMeals
+      : setSelectedMeals;
+
+
+  const setCurrentSelectedBaggage =
+    isRoundTrip
+      ? activeJourney === "outbound"
+        ? setOutboundSelectedBaggage
+        : setInboundSelectedBaggage
+      : setSelectedBaggage;
 
   const pricing = fareQuote?.Pricing || {};
   const fare = fareQuote?.Fare || {};
@@ -183,9 +371,33 @@ const SSRPage = () => {
       return;
     }
 
-    if (!traceId || !isValidResultIndex || !fareQuote) {
-      navigate("/", { replace: true });
-      return;
+    if (isRoundTrip) {
+      if (
+        !traceId ||
+        !isValidOutboundResultIndex ||
+        !isValidInboundResultIndex ||
+        !outboundFareQuote ||
+        !inboundFareQuote
+      ) {
+        navigate("/", {
+          replace: true,
+        });
+
+        return;
+      }
+    } else {
+      // ✅ Existing One Way validation
+      if (
+        !traceId ||
+        !isValidResultIndex ||
+        !fareQuote
+      ) {
+        navigate("/", {
+          replace: true,
+        });
+
+        return;
+      }
     }
 
     if (sessionExpired) {
@@ -200,6 +412,13 @@ const SSRPage = () => {
     isValidResultIndex,
     fareQuote,
     sessionExpired,
+    isRoundTrip,
+
+    isValidOutboundResultIndex,
+    isValidInboundResultIndex,
+
+    outboundFareQuote,
+    inboundFareQuote,
     navigate,
   ]);
 
@@ -213,7 +432,7 @@ const SSRPage = () => {
 
     const seatKey = getSeatKey(seat);
 
-    const alreadyTakenByOtherPassenger = selectedSeats.find(
+    const alreadyTakenByOtherPassenger = currentSelectedSeats.find(
       (s) => getSeatKey(s) === seatKey && s.PassengerIndex !== activePassenger,
     );
 
@@ -225,7 +444,7 @@ const SSRPage = () => {
       return;
     }
 
-    let updatedSeats = [...selectedSeats];
+    let updatedSeats = [...currentSelectedSeats];
 
     const alreadySelectedByActivePassenger = updatedSeats.find(
       (s) => getSeatKey(s) === seatKey && s.PassengerIndex === activePassenger,
@@ -237,7 +456,7 @@ const SSRPage = () => {
           !(getSeatKey(s) === seatKey && s.PassengerIndex === activePassenger),
       );
 
-      setSelectedSeats(updatedSeats);
+      setCurrentSelectedSeats(updatedSeats);
       return;
     }
 
@@ -250,7 +469,7 @@ const SSRPage = () => {
       PassengerIndex: activePassenger,
     });
 
-    setSelectedSeats(updatedSeats);
+    setCurrentSelectedSeats(updatedSeats);
   };
 
   /* ---------------- Meal Click ---------------- */
@@ -263,7 +482,7 @@ const SSRPage = () => {
 
     const mealKey = getMealKey(meal);
 
-    let updatedMeals = [...selectedMeals];
+    let updatedMeals = [...currentSelectedMeals];
 
     const alreadySelectedByActivePassenger = updatedMeals.find(
       (m) => getMealKey(m) === mealKey && m.PassengerIndex === activePassenger,
@@ -275,7 +494,7 @@ const SSRPage = () => {
           !(getMealKey(m) === mealKey && m.PassengerIndex === activePassenger),
       );
 
-      setSelectedMeals(updatedMeals);
+      setCurrentSelectedMeals(updatedMeals);
       return;
     }
 
@@ -289,14 +508,14 @@ const SSRPage = () => {
       Quantity: meal?.Quantity || 1,
     });
 
-    setSelectedMeals(updatedMeals);
+    setCurrentSelectedMeals(updatedMeals);
   };
 
   /* ---------------- Baggage Click ---------------- */
 
   const handleBaggageSelect = (bag) => {
     if (bag.Code === "NO_BAGGAGE") {
-      setSelectedBaggage([]);
+      setCurrentSelectedBaggage([]);
       return;
     }
 
@@ -309,7 +528,7 @@ const SSRPage = () => {
       });
     }
 
-    setSelectedBaggage(updated);
+    setCurrentSelectedBaggage(updated);
   };
 
   /* ---------------- Auto Free SSR ---------------- */
@@ -353,9 +572,11 @@ const SSRPage = () => {
     const unavailable = seat?.AvailablityType === 0;
     const price = getPrice(seat?.Price);
 
-    const selectedSeat = selectedSeats.find(
-      (s) => getSeatKey(s) === getSeatKey(seat),
-    );
+    const selectedSeat =
+      currentSelectedSeats.find(
+        (s) =>
+          getSeatKey(s) === getSeatKey(seat),
+      );
 
     const isSelectedByActivePassenger =
       selectedSeat?.PassengerIndex === activePassenger;
@@ -395,97 +616,289 @@ const SSRPage = () => {
   /* ---------------- Fetch SSR ---------------- */
 
   useEffect(() => {
-    if (
-      !token ||
-      !traceId ||
-      !isValidResultIndex ||
-      !fareQuote ||
-      sessionExpired
-    ) {
+    if (!token || !traceId || sessionExpired) {
       return;
     }
 
+    // =========================
+    // SESSION VALIDATION
+    // =========================
+
+    if (isRoundTrip) {
+      if (
+        !isValidOutboundResultIndex ||
+        !isValidInboundResultIndex ||
+        !outboundFareQuote ||
+        !inboundFareQuote
+      ) {
+        return;
+      }
+    } else {
+      if (
+        !isValidResultIndex ||
+        !fareQuote
+      ) {
+        return;
+      }
+    }
+
     let isMounted = true;
+
+
+    // =========================
+    // FETCH ONE SSR RESPONSE
+    // =========================
+
+    const fetchSSRForResultIndex = async (
+      currentResultIndex,
+    ) => {
+      const res = await privateApi.post(
+        "/api/airlines/ssr/",
+        {
+          TraceId: traceId,
+          ResultIndex:
+            currentResultIndex,
+        },
+      );
+
+      const ssrResponse =
+        res?.data?.Response?.Response ||
+        res?.data?.Response ||
+        res?.data?.data?.Response ||
+        res?.data?.data ||
+        res?.data;
+
+      const errorCode = Number(
+        ssrResponse?.Error?.ErrorCode ||
+        0,
+      );
+
+      if (errorCode === 6) {
+        throw new Error(
+          "Invalid token. Please search flights again.",
+        );
+      }
+
+      if (
+        errorCode &&
+        errorCode !== 0
+      ) {
+        throw new Error(
+          ssrResponse?.Error
+            ?.ErrorMessage ||
+          "SSR API error",
+        );
+      }
+
+
+      // =========================
+      // NORMALIZE MEALS
+      // =========================
+
+      const mealList = [
+        ...normalizeArray(
+          ssrResponse?.MealDynamic,
+        ),
+
+        ...normalizeArray(
+          ssrResponse?.Meal,
+        ),
+
+        ...normalizeArray(
+          ssrResponse?.Meals,
+        ),
+      ];
+
+
+      // =========================
+      // NORMALIZE BAGGAGE
+      // =========================
+
+      const baggageList = [
+        ...normalizeArray(
+          ssrResponse?.Baggage,
+        ),
+
+        ...normalizeArray(
+          ssrResponse?.BaggageDynamic,
+        ),
+      ];
+
+
+      // =========================
+      // NORMALIZE SEATS
+      // =========================
+
+      const seatDynamic =
+        normalizeArray(
+          ssrResponse?.SeatDynamic,
+        );
+
+      const allSeatRows =
+        seatDynamic.flatMap((seg) =>
+          normalizeArray(
+            seg?.SegmentSeat,
+          ).flatMap(
+            (segmentSeat) =>
+              normalizeArray(
+                segmentSeat?.RowSeats,
+              ),
+          ),
+        ) || [];
+
+
+      return {
+        mealList,
+        baggageList,
+
+        seatRows:
+          allSeatRows.map(
+            (row) =>
+              row?.Seats || [],
+          ),
+      };
+    };
+
+
+    // =========================
+    // FETCH SSR
+    // =========================
 
     const fetchSSR = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const res = await privateApi.post("/api/airlines/ssr/", {
-          TraceId: traceId,
-          ResultIndex: resultIndex,
-        });
 
-        const ssrResponse =
-          res?.data?.Response?.Response ||
-          res?.data?.Response ||
-          res?.data?.data?.Response ||
-          res?.data?.data ||
-          res?.data;
+        // =======================
+        // ROUND TRIP
+        // =======================
 
-        const errorCode = Number(ssrResponse?.Error?.ErrorCode || 0);
-
-        if (errorCode === 6) {
-          throw new Error("Invalid token. Please search flights again.");
-        }
-
-        if (errorCode && errorCode !== 0) {
-          throw new Error(ssrResponse?.Error?.ErrorMessage || "SSR API error");
-        }
-
-        const mealList = [
-          ...normalizeArray(ssrResponse?.MealDynamic),
-          ...normalizeArray(ssrResponse?.Meal),
-          ...normalizeArray(ssrResponse?.Meals),
-        ];
-
-        const baggageList = [
-          ...normalizeArray(ssrResponse?.Baggage),
-          ...normalizeArray(ssrResponse?.BaggageDynamic),
-        ];
-
-        const seatDynamic = normalizeArray(ssrResponse?.SeatDynamic);
-
-        const allSeatRows =
-          seatDynamic.flatMap((seg) =>
-            normalizeArray(seg?.SegmentSeat).flatMap((segmentSeat) =>
-              normalizeArray(segmentSeat?.RowSeats),
+        if (isRoundTrip) {
+          const [
+            outboundSSR,
+            inboundSSR,
+          ] = await Promise.all([
+            fetchSSRForResultIndex(
+              outboundResultIndex,
             ),
-          ) || [];
 
-        if (!isMounted) return;
+            fetchSSRForResultIndex(
+              inboundResultIndex,
+            ),
+          ]);
 
-        setMeals(mealList);
-        setBaggage(baggageList);
-        setSeatRows(allSeatRows.map((row) => row?.Seats || []));
+          if (!isMounted) {
+            return;
+          }
 
+
+          // Outbound options
+          setOutboundMeals(
+            outboundSSR.mealList,
+          );
+
+          setOutboundBaggage(
+            outboundSSR.baggageList,
+          );
+
+          setOutboundSeatRows(
+            outboundSSR.seatRows,
+          );
+
+
+          // Return options
+          setInboundMeals(
+            inboundSSR.mealList,
+          );
+
+          setInboundBaggage(
+            inboundSSR.baggageList,
+          );
+
+          setInboundSeatRows(
+            inboundSSR.seatRows,
+          );
+
+          return;
+        }
+
+
+        // =======================
+        // ONE WAY
+        // Existing flow
+        // =======================
+
+        const oneWaySSR =
+          await fetchSSRForResultIndex(
+            resultIndex,
+          );
+
+        if (!isMounted) {
+          return;
+        }
+
+        setMeals(
+          oneWaySSR.mealList,
+        );
+
+        setBaggage(
+          oneWaySSR.baggageList,
+        );
+
+        setSeatRows(
+          oneWaySSR.seatRows,
+        );
+
+
+        // Existing One Way
+        // free SSR behaviour
         autoApplyFreeSSRIfNeeded({
-          mealList,
-          baggageList,
+          mealList:
+            oneWaySSR.mealList,
+
+          baggageList:
+            oneWaySSR.baggageList,
         });
       } catch (err) {
-        console.error("SSR ERROR:", err);
+        console.error(
+          "SSR ERROR:",
+          err,
+        );
 
-        const status = err?.response?.status;
+        const status =
+          err?.response?.status;
 
         const apiMessage =
-          err?.response?.data?.message ||
-          err?.response?.data?.error ||
-          err?.response?.data?.Response?.Error?.ErrorMessage ||
+          err?.response?.data
+            ?.message ||
+          err?.response?.data
+            ?.error ||
+          err?.response?.data
+            ?.Response?.Error
+            ?.ErrorMessage ||
           err?.message ||
           "Failed to load SSR data";
 
         const loginExpired =
           status === 401 ||
-          String(apiMessage).toLowerCase().includes("login again") ||
-          String(apiMessage).toLowerCase().includes("session expired");
+          String(apiMessage)
+            .toLowerCase()
+            .includes(
+              "login again",
+            ) ||
+          String(apiMessage)
+            .toLowerCase()
+            .includes(
+              "session expired",
+            );
 
         if (loginExpired) {
           navigate("/login", {
             replace: true,
             state: {
-              redirectTo: location.pathname,
+              redirectTo:
+                location.pathname,
             },
           });
 
@@ -502,7 +915,9 @@ const SSRPage = () => {
       }
     };
 
+
     fetchSSR();
+
 
     return () => {
       isMounted = false;
@@ -510,11 +925,24 @@ const SSRPage = () => {
   }, [
     token,
     traceId,
+
     resultIndex,
     fareQuote,
+
+    outboundResultIndex,
+    inboundResultIndex,
+
+    outboundFareQuote,
+    inboundFareQuote,
+
+    isRoundTrip,
+
+    isValidResultIndex,
+    isValidOutboundResultIndex,
+    isValidInboundResultIndex,
+
     sessionExpired,
   ]);
-
   /* ---------------- Price ---------------- */
 
   const seatsTotal = selectedSeats.reduce((t, s) => t + getPrice(s?.Price), 0);
@@ -529,30 +957,48 @@ const SSRPage = () => {
 
   /* ---------------- Derived ---------------- */
 
-  const paidBaggage = baggage.filter((b) => getPrice(b?.Price) > 0);
-  const freeBaggage = baggage.filter((b) => getPrice(b?.Price) === 0);
+  const paidBaggage =
+    currentBaggage.filter(
+      (b) => getPrice(b?.Price) > 0,
+    );
+
+  const freeBaggage =
+    currentBaggage.filter(
+      (b) => getPrice(b?.Price) === 0,
+    );
 
   const noBaggageOption = {
     Code: "NO_BAGGAGE",
     Price: 0,
   };
 
-  const activePassengerSeat = selectedSeats.find(
-    (s) => s.PassengerIndex === activePassenger,
-  );
+  const activePassengerSeat =
+    currentSelectedSeats.find(
+      (s) =>
+        s.PassengerIndex === activePassenger,
+    );
 
-  const activePassengerMeal = selectedMeals.find(
-    (m) => m.PassengerIndex === activePassenger,
-  );
+  const activePassengerMeal =
+    currentSelectedMeals.find(
+      (m) =>
+        m.PassengerIndex === activePassenger,
+    );
 
-  const activePassengerBaggage = selectedBaggage.filter(
-    (b) => b.PassengerIndex === activePassenger,
-  );
+  const activePassengerBaggage =
+    currentSelectedBaggage.filter(
+      (b) =>
+        b.PassengerIndex === activePassenger,
+    );
 
-  const selectedSeatCount = selectedSeats.length;
-  const selectedMealPassengerCount = new Set(
-    selectedMeals.map((meal) => meal.PassengerIndex),
-  ).size;
+  const selectedSeatCount =
+    currentSelectedSeats.length;
+
+  const selectedMealPassengerCount =
+    new Set(
+      currentSelectedMeals.map(
+        (meal) => meal.PassengerIndex,
+      ),
+    ).size;
 
   const canContinue =
     passengerCount &&
@@ -632,6 +1078,56 @@ const SSRPage = () => {
           Seats and meals are optional unless marked as required by the airline.
         </p>
 
+        {isRoundTrip && (
+          <div className="mb-8 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveJourney("outbound");
+                setActivePassenger(0);
+              }}
+              className={`
+        rounded-xl border p-4 text-left transition
+        ${activeJourney === "outbound"
+                  ? "border-[#E6B35C] bg-[#E6B35C]/10"
+                  : "border-(--border-soft) bg-(--bg-card)"
+                }
+      `}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-(--text-muted)">
+                Outbound
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-(--gold-soft)">
+                {getRouteLabel(outboundFareQuote)}
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveJourney("inbound");
+                setActivePassenger(0);
+              }}
+              className={`
+        rounded-xl border p-4 text-left transition
+        ${activeJourney === "inbound"
+                  ? "border-[#E6B35C] bg-[#E6B35C]/10"
+                  : "border-(--border-soft) bg-(--bg-card)"
+                }
+      `}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-(--text-muted)">
+                Return
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-(--gold-soft)">
+                {getRouteLabel(inboundFareQuote)}
+              </p>
+            </button>
+          </div>
+        )}
+
         {(isSeatMandatory || isMealMandatory || shouldAutoIncludeFreeSSR) && (
           <div className="mb-8 p-4 border border-(--border-soft) rounded-xl bg-(--bg-card)">
             <h3 className="font-semibold text-(--gold-soft) mb-2">
@@ -668,11 +1164,11 @@ const SSRPage = () => {
 
           <div className="flex gap-2 flex-wrap">
             {Array.from({ length: passengerCount || 0 }).map((_, index) => {
-              const hasSeat = selectedSeats.some(
+              const hasSeat = currentSelectedSeats.some(
                 (s) => s.PassengerIndex === index,
               );
 
-              const hasMeal = selectedMeals.some(
+              const hasMeal = currentSelectedMeals.some(
                 (m) => m.PassengerIndex === index,
               );
 
@@ -714,10 +1210,13 @@ const SSRPage = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const updatedMeals = selectedMeals.filter(
-                    (m) => m.PassengerIndex !== activePassenger,
-                  );
-                  setSelectedMeals(updatedMeals);
+                  const updatedMeals =
+                    currentSelectedMeals.filter(
+                      (m) =>
+                        m.PassengerIndex !== activePassenger,
+                    );
+
+                  setCurrentSelectedMeals(updatedMeals);
                 }}
                 className="px-4 py-2 rounded bg-red-600 text-white text-sm"
               >
@@ -736,10 +1235,10 @@ const SSRPage = () => {
             </div>
           )}
 
-          {meals.length > 0 ? (
+          {currentMeals.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {meals.map((meal, index) => {
-                const isSelected = selectedMeals.some(
+              {currentMeals.map((meal, index) => {
+                const isSelected = currentSelectedMeals.some(
                   (m) =>
                     getMealKey(m) === getMealKey(meal) &&
                     m.PassengerIndex === activePassenger,
@@ -799,7 +1298,7 @@ const SSRPage = () => {
               <button
                 type="button"
                 onClick={() => handleBaggageSelect(noBaggageOption)}
-                className={`p-3 border rounded ${selectedBaggage.length === 0
+                className={`p-3 border rounded ${currentSelectedBaggage.length === 0
                   ? "bg-gray-800 text-white"
                   : "bg-(--bg-card) border-(--border-soft)"
                   }`}
@@ -809,7 +1308,7 @@ const SSRPage = () => {
               </button>
 
               {[...freeBaggage, ...paidBaggage].map((bag, index) => {
-                const isSelected = selectedBaggage.some(
+                const isSelected = currentSelectedBaggage.some(
                   (b) => getBaggageKey(b) === getBaggageKey(bag),
                 );
 
@@ -839,7 +1338,7 @@ const SSRPage = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <div>
               <h3 className="font-semibold text-(--gold-soft)">
-                Seats ({selectedSeats.length}/{passengerCount}){" "}
+                Seats ({currentSelectedSeats.length}/{passengerCount}){" "}
                 {isSeatMandatory ? "(Required)" : "(Optional)"}
               </h3>
 
@@ -868,10 +1367,13 @@ const SSRPage = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const updatedSeats = selectedSeats.filter(
-                    (s) => s.PassengerIndex !== activePassenger,
-                  );
-                  setSelectedSeats(updatedSeats);
+                  const updatedSeats =
+                    currentSelectedSeats.filter(
+                      (s) =>
+                        s.PassengerIndex !== activePassenger,
+                    );
+
+                  setCurrentSelectedSeats(updatedSeats);
                 }}
                 className="px-4 py-2 rounded bg-red-600 text-white text-sm"
               >
@@ -882,8 +1384,8 @@ const SSRPage = () => {
 
           <div className="overflow-x-auto">
             <div className="min-w-max space-y-2">
-              {seatRows.length > 0 ? (
-                seatRows.map((row, rowIndex) => (
+              {currentSeatRows.length > 0 ? (
+                currentSeatRows.map((row, rowIndex) => (
                   <div
                     key={rowIndex}
                     className="flex gap-2 justify-center items-center"

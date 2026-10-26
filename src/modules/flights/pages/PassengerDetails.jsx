@@ -237,17 +237,52 @@ const PassengerDetails = () => {
   const navigate = useNavigate();
 
   const {
+    // =========================
+    // ONE WAY
+    // =========================
     selectedFlight,
     selectedSeats,
     selectedBaggage,
     selectedMeals,
-    passengerCount,
-    traceId,
     resultIndex,
     fareQuote,
+
+    // =========================
+    // ROUND TRIP
+    // =========================
+    selectedOutboundFlight,
+    selectedInboundFlight,
+
+    outboundResultIndex,
+    inboundResultIndex,
+
+    outboundFareQuote,
+    inboundFareQuote,
+
+    outboundSelectedSeats,
+    outboundSelectedMeals,
+    outboundSelectedBaggage,
+
+    inboundSelectedSeats,
+    inboundSelectedMeals,
+    inboundSelectedBaggage,
+
+    lastSearchPayload,
+    flightValidation,
+
+    // COMMON
+    passengerCount,
+    traceId,
   } = useFlightStore();
 
+  const isRoundTrip =
+    lastSearchPayload?.trip_type === "roundtrip";
+
   const totalPassengers = Math.max(1, Number(passengerCount) || 1);
+
+  const primaryFlight = isRoundTrip
+    ? selectedOutboundFlight || selectedInboundFlight
+    : selectedFlight;
 
 
 
@@ -259,29 +294,60 @@ const PassengerDetails = () => {
     fareQuote ||
     {};
 
-  const isGSTMandatory = toBool(
-    fareQuoteResult?.IsGSTMandatory,
-  );
 
-  const isGSTAllowed =
-    toBool(fareQuoteResult?.GSTAllowed) ||
-    isGSTMandatory;
 
-  const isPanRequiredAtBook = toBool(
-    fareQuoteResult?.IsPanRequiredAtBook,
-  );
+  const outboundFareQuoteResult =
+    outboundFareQuote?.data?.Response?.Results ||
+    outboundFareQuote?.Response?.Results ||
+    outboundFareQuote?.Results ||
+    outboundFareQuote ||
+    {};
 
-  const isPanRequiredAtTicket = toBool(
-    fareQuoteResult?.IsPanRequiredAtTicket,
-  );
+  const inboundFareQuoteResult =
+    inboundFareQuote?.data?.Response?.Results ||
+    inboundFareQuote?.Response?.Results ||
+    inboundFareQuote?.Results ||
+    inboundFareQuote ||
+    {};
 
-  const isPassportRequiredAtBook = toBool(
-    fareQuoteResult?.IsPassportRequiredAtBook,
-  );
+  const isGSTMandatory = isRoundTrip
+    ? toBool(flightValidation?.isGSTMandatory)
+    : toBool(fareQuoteResult?.IsGSTMandatory);
 
-  const isPassportRequiredAtTicket = toBool(
-    fareQuoteResult?.IsPassportRequiredAtTicket,
-  );
+  const isGSTAllowed = isRoundTrip
+    ? (
+      toBool(outboundFareQuoteResult?.GSTAllowed) ||
+      toBool(inboundFareQuoteResult?.GSTAllowed) ||
+      isGSTMandatory
+    )
+    : (
+      toBool(fareQuoteResult?.GSTAllowed) ||
+      isGSTMandatory
+    );
+
+  const isPanRequiredAtBook = isRoundTrip
+    ? toBool(flightValidation?.isPanRequiredAtBook)
+    : toBool(fareQuoteResult?.IsPanRequiredAtBook);
+
+  const isPanRequiredAtTicket = isRoundTrip
+    ? toBool(flightValidation?.isPanRequiredAtTicket)
+    : toBool(fareQuoteResult?.IsPanRequiredAtTicket);
+
+  const isPassportRequiredAtBook = isRoundTrip
+    ? toBool(
+      flightValidation?.isPassportRequiredAtBook,
+    )
+    : toBool(
+      fareQuoteResult?.IsPassportRequiredAtBook,
+    );
+
+  const isPassportRequiredAtTicket = isRoundTrip
+    ? toBool(
+      flightValidation?.isPassportRequiredAtTicket,
+    )
+    : toBool(
+      fareQuoteResult?.IsPassportRequiredAtTicket,
+    );
 
   // Passenger Details par field tabhi lenge
   // jab Book YA Ticket me required ho
@@ -295,22 +361,63 @@ const PassengerDetails = () => {
   /* ---------------- SEGMENTS ---------------- */
 
   const segments = useMemo(() => {
-    const rawSegments =
-      selectedFlight?.segments || selectedFlight?.Segments || [];
+    // Existing One Way
+    if (!isRoundTrip) {
+      const rawSegments =
+        selectedFlight?.segments ||
+        selectedFlight?.Segments ||
+        [];
 
-    return Array.isArray(rawSegments) ? rawSegments.flat(Infinity) : [];
-  }, [selectedFlight]);
+      return Array.isArray(rawSegments)
+        ? rawSegments.flat(Infinity)
+        : [];
+    }
+
+    // Round Trip
+    const outboundSegments =
+      selectedOutboundFlight?.segments ||
+      selectedOutboundFlight?.Segments ||
+      [];
+
+    const inboundSegments =
+      selectedInboundFlight?.segments ||
+      selectedInboundFlight?.Segments ||
+      [];
+
+    return [
+      ...(Array.isArray(outboundSegments)
+        ? outboundSegments.flat(Infinity)
+        : []),
+
+      ...(Array.isArray(inboundSegments)
+        ? inboundSegments.flat(Infinity)
+        : []),
+    ];
+  }, [
+    isRoundTrip,
+    selectedFlight,
+    selectedOutboundFlight,
+    selectedInboundFlight,
+  ]);
 
   /* ---------------- AIRLINE RULES ---------------- */
 
   const airlineProfile = useMemo(
-    () => getAirlineProfile(selectedFlight, segments),
-    [selectedFlight, segments],
+    () =>
+      getAirlineProfile(
+        primaryFlight,
+        segments,
+      ),
+    [primaryFlight, segments],
   );
 
   const passengerTypes = useMemo(
-    () => buildPassengerTypes(selectedFlight, totalPassengers),
-    [selectedFlight, totalPassengers],
+    () =>
+      buildPassengerTypes(
+        primaryFlight,
+        totalPassengers,
+      ),
+    [primaryFlight, totalPassengers],
   );
 
   /* ---------------- INITIAL STATE ---------------- */
@@ -803,44 +910,292 @@ const PassengerDetails = () => {
     if (!validatePassengers()) return;
 
     if (!validateGSTDetails()) return;
-    if (!selectedFlight) {
-      alert("Selected flight data is missing. Please search the flight again.");
+
+    // =====================================================
+    // ONE WAY
+    // Existing live flow — keep same
+    // =====================================================
+    if (!isRoundTrip) {
+      if (!selectedFlight) {
+        alert(
+          "Selected flight data is missing. Please search the flight again.",
+        );
+        navigate("/");
+        return;
+      }
+
+      if (!fareQuote) {
+        alert(
+          "Fare quote data is missing. Please search the flight again.",
+        );
+        navigate("/");
+        return;
+      }
+
+      if (
+        !traceId ||
+        resultIndex === null ||
+        resultIndex === undefined
+      ) {
+        alert(
+          "Flight session data is missing. Please search the flight again.",
+        );
+        navigate("/");
+        return;
+      }
+
+      const normalizedPassengers =
+        passengers.map((passenger, index) => ({
+          ...passenger,
+
+          paxType:
+            passengerTypes[index] || 1,
+
+          firstName:
+            normalizeText(
+              passenger.firstName,
+            ),
+
+          lastName:
+            normalizeText(
+              passenger.lastName,
+            ),
+
+          pan:
+            passenger.pan
+              .trim()
+              .toUpperCase(),
+
+          email:
+            passenger.email.trim(),
+
+          phone:
+            passenger.phone.trim(),
+
+          address:
+            normalizeText(
+              passenger.address,
+            ),
+
+          city:
+            normalizeText(
+              passenger.city,
+            ),
+
+          country:
+            normalizeText(
+              passenger.country,
+            ),
+
+          nationality:
+            passenger.nationality
+              .trim()
+              .toUpperCase(),
+
+          passport:
+            passenger.passport
+              .trim()
+              .toUpperCase(),
+
+          dob:
+            formatDate(passenger.dob),
+
+          passportIssueDate:
+            formatDate(
+              passenger.passportIssueDate,
+            ),
+
+          passportExpiry:
+            formatDate(
+              passenger.passportExpiry,
+            ),
+        }));
+
+      const hasGSTDetails = Boolean(
+        gstDetails.GSTNumber.trim() ||
+        gstDetails.GSTCompanyName.trim() ||
+        gstDetails.GSTCompanyEmail.trim() ||
+        gstDetails.GSTCompanyContactNumber.trim() ||
+        gstDetails.GSTCompanyAddress.trim()
+      );
+
+      const normalizedGSTDetails =
+        isGSTAllowed &&
+          hasGSTDetails
+          ? {
+            GSTNumber:
+              gstDetails.GSTNumber
+                .trim()
+                .toUpperCase(),
+
+            GSTCompanyName:
+              normalizeText(
+                gstDetails.GSTCompanyName,
+              ),
+
+            GSTCompanyEmail:
+              gstDetails.GSTCompanyEmail.trim(),
+
+            GSTCompanyContactNumber:
+              gstDetails.GSTCompanyContactNumber.trim(),
+
+            GSTCompanyAddress:
+              normalizeText(
+                gstDetails.GSTCompanyAddress,
+              ),
+          }
+          : null;
+
+      // ✅ Existing One Way bookingData
+      const oneWayBookingData = {
+        passengers:
+          normalizedPassengers,
+
+        selectedSeats,
+        selectedMeals,
+        selectedBaggage,
+
+        selectedFlight,
+
+        traceId,
+        resultIndex,
+        fareQuote,
+
+        gstDetails:
+          normalizedGSTDetails,
+
+        isGSTMandatory,
+        isGSTAllowed,
+      };
+
+      localStorage.setItem(
+        "bookingData",
+        JSON.stringify(
+          oneWayBookingData,
+        ),
+      );
+
+      navigate(
+        "/review-booking",
+        {
+          state:
+            oneWayBookingData,
+        },
+      );
+
+      return;
+    }
+
+
+    // =====================================================
+    // ROUND TRIP
+    // New separate flow
+    // =====================================================
+
+    if (
+      !selectedOutboundFlight ||
+      !selectedInboundFlight
+    ) {
+      alert(
+        "Round trip flight data is missing. Please search the flights again.",
+      );
       navigate("/");
       return;
     }
 
-    if (!fareQuote) {
-      alert("Fare quote data is missing. Please search the flight again.");
+    if (
+      !outboundFareQuote ||
+      !inboundFareQuote
+    ) {
+      alert(
+        "Round trip fare quote data is missing. Please search the flights again.",
+      );
       navigate("/");
       return;
     }
 
-    if (!traceId || resultIndex === null || resultIndex === undefined) {
-      alert("Flight session data is missing. Please search the flight again.");
+    if (
+      !traceId ||
+      outboundResultIndex === null ||
+      outboundResultIndex === undefined ||
+      inboundResultIndex === null ||
+      inboundResultIndex === undefined
+    ) {
+      alert(
+        "Round trip session data is missing. Please search the flights again.",
+      );
       navigate("/");
       return;
     }
 
-    const normalizedPassengers = passengers.map((passenger, index) => ({
-      ...passenger,
+    const normalizedPassengers =
+      passengers.map(
+        (passenger, index) => ({
+          ...passenger,
 
-      // ✅ Save actual passenger type
-      paxType: passengerTypes[index] || 1,
+          paxType:
+            passengerTypes[index] || 1,
 
-      firstName: normalizeText(passenger.firstName),
-      lastName: normalizeText(passenger.lastName),
-      pan: passenger.pan.trim().toUpperCase(),
-      email: passenger.email.trim(),
-      phone: passenger.phone.trim(),
-      address: normalizeText(passenger.address),
-      city: normalizeText(passenger.city),
-      country: normalizeText(passenger.country),
-      nationality: passenger.nationality.trim().toUpperCase(),
-      passport: passenger.passport.trim().toUpperCase(),
-      dob: formatDate(passenger.dob),
-      passportIssueDate: formatDate(passenger.passportIssueDate),
-      passportExpiry: formatDate(passenger.passportExpiry),
-    }));
+          firstName:
+            normalizeText(
+              passenger.firstName,
+            ),
+
+          lastName:
+            normalizeText(
+              passenger.lastName,
+            ),
+
+          pan:
+            passenger.pan
+              .trim()
+              .toUpperCase(),
+
+          email:
+            passenger.email.trim(),
+
+          phone:
+            passenger.phone.trim(),
+
+          address:
+            normalizeText(
+              passenger.address,
+            ),
+
+          city:
+            normalizeText(
+              passenger.city,
+            ),
+
+          country:
+            normalizeText(
+              passenger.country,
+            ),
+
+          nationality:
+            passenger.nationality
+              .trim()
+              .toUpperCase(),
+
+          passport:
+            passenger.passport
+              .trim()
+              .toUpperCase(),
+
+          dob:
+            formatDate(passenger.dob),
+
+          passportIssueDate:
+            formatDate(
+              passenger.passportIssueDate,
+            ),
+
+          passportExpiry:
+            formatDate(
+              passenger.passportExpiry,
+            ),
+        }),
+      );
 
     const hasGSTDetails = Boolean(
       gstDetails.GSTNumber.trim() ||
@@ -851,55 +1206,102 @@ const PassengerDetails = () => {
     );
 
     const normalizedGSTDetails =
-      isGSTAllowed && hasGSTDetails
+      isGSTAllowed &&
+        hasGSTDetails
         ? {
-          GSTNumber: gstDetails.GSTNumber.trim().toUpperCase(),
-          GSTCompanyName: normalizeText(gstDetails.GSTCompanyName),
-          GSTCompanyEmail: gstDetails.GSTCompanyEmail.trim(),
+          GSTNumber:
+            gstDetails.GSTNumber
+              .trim()
+              .toUpperCase(),
+
+          GSTCompanyName:
+            normalizeText(
+              gstDetails.GSTCompanyName,
+            ),
+
+          GSTCompanyEmail:
+            gstDetails.GSTCompanyEmail.trim(),
+
           GSTCompanyContactNumber:
             gstDetails.GSTCompanyContactNumber.trim(),
-          GSTCompanyAddress: normalizeText(
-            gstDetails.GSTCompanyAddress
-          ),
+
+          GSTCompanyAddress:
+            normalizeText(
+              gstDetails.GSTCompanyAddress,
+            ),
         }
         : null;
 
+    const roundTripBookingData = {
+      // important identifiers
+      isRoundTrip: true,
+      tripType: "roundtrip",
+
+      passengers:
+        normalizedPassengers,
+
+      traceId,
+
+      // =========================
+      // OUTBOUND
+      // =========================
+      selectedOutboundFlight,
+      outboundResultIndex,
+      outboundFareQuote,
+
+      outboundSelectedSeats:
+        outboundSelectedSeats || [],
+
+      outboundSelectedMeals:
+        outboundSelectedMeals || [],
+
+      outboundSelectedBaggage:
+        outboundSelectedBaggage || [],
+
+      // =========================
+      // RETURN
+      // =========================
+      selectedInboundFlight,
+      inboundResultIndex,
+      inboundFareQuote,
+
+      inboundSelectedSeats:
+        inboundSelectedSeats || [],
+
+      inboundSelectedMeals:
+        inboundSelectedMeals || [],
+
+      inboundSelectedBaggage:
+        inboundSelectedBaggage || [],
+
+      // =========================
+      // REQUIREMENTS
+      // =========================
+      flightValidation,
+
+      gstDetails:
+        normalizedGSTDetails,
+
+      isGSTMandatory,
+      isGSTAllowed,
+
+      lastSearchPayload,
+    };
+
     localStorage.setItem(
       "bookingData",
-      JSON.stringify({
-        passengers: normalizedPassengers,
-        selectedSeats,
-        selectedMeals,
-        selectedBaggage,
-        selectedFlight,
-        traceId,
-        resultIndex,
-        fareQuote,
-
-        gstDetails: normalizedGSTDetails,
-
-        isGSTMandatory,
-        isGSTAllowed,
-      }),
+      JSON.stringify(
+        roundTripBookingData,
+      ),
     );
 
-    navigate("/review-booking", {
-      state: {
-        passengers: normalizedPassengers,
-        selectedBaggage,
-        selectedSeats,
-        selectedMeals,
-        selectedFlight,
-        traceId,
-        resultIndex,
-        fareQuote,
-
-        gstDetails: normalizedGSTDetails,
-
-        isGSTMandatory,
-        isGSTAllowed,
+    navigate(
+      "/review-booking",
+      {
+        state:
+          roundTripBookingData,
       },
-    });
+    );
   };
 
   const inputStyle =
