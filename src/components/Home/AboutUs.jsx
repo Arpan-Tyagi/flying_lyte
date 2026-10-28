@@ -46,6 +46,8 @@ const AboutUs = () => {
 
   const location = useLocation();
   const isAboutPage = location.pathname === "/about";
+  // On /about this is the page heading; on the homepage it sits under the hero H1
+  const TitleTag = isAboutPage ? "h1" : "h2";
 
   return (
     <section className="py-24 px-6 bg-(--bg-main) text-(--text-main)">
@@ -64,9 +66,9 @@ const AboutUs = () => {
           whileInView="visible"
           className="text-center max-w-3xl mx-auto"
         >
-          <h2 className=" text-4xl md:text-6xl font-bold text-(--gold-main) mb-4">
-            About Flyinglyte
-          </h2>
+          <TitleTag className=" text-4xl md:text-6xl font-bold text-(--gold-main) mb-4">
+            About FlyingLyte
+          </TitleTag>
 
           <h3 className="font-(--font-hero) text-md md:xl mb-4">
             Elevating the Way the World Travels
@@ -111,7 +113,7 @@ const AboutUs = () => {
           </div>
 
           <img
-            src="/images/about_vision.jpg"
+            src="/images/about_vision.webp"
             alt="FlyingLyte Elevated Travel Experience"
             className="rounded-2xl shadow-2xl border border-[var(--border-soft)] w-full h-[320px] md:h-[380px] object-cover"
             loading="lazy" />

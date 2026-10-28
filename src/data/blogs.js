@@ -7,7 +7,7 @@ export const blogs = [
     author: "FlyingLyte Team",
     date: "08 May 2026",
     image:
-      "/images/blogs/why-you-need-to-know-7-things-about-tomorrowland-thailand.png",
+      "/images/blogs/why-you-need-to-know-7-things-about-tomorrowland-thailand.webp",
 
     shortDescription:
       "Discover the 7 most important things about Tomorrowland Thailand 2026 including tickets, DJs, venue, tourism impact, and festival experience.",
@@ -49,7 +49,7 @@ Tomorrowland Thailand 2026 is shaping up to be one of the biggest EDM events in 
     author: "FlyingLyte Team",
     date: "11 May 2026",
     image:
-      "/images/blogs/top-reasons-why-thailand-tomorrowland-2026-is-trending.png",
+      "/images/blogs/top-reasons-why-thailand-tomorrowland-2026-is-trending.webp",
     shortDescription:
       "Discover why Tomorrowland Thailand 2026 is becoming one of the most talked-about EDM festivals in the world.",
     description: `
@@ -90,7 +90,7 @@ Tomorrowland Thailand 2026 is expected to become one of Asia’s biggest music a
     category: "EDM Festivals",
     author: "FlyingLyte Team",
     date: "12 May 2026",
-    image: "/images/blogs/best-things-about-thailand-tomorrowland-2026.png",
+    image: "/images/blogs/best-things-about-thailand-tomorrowland-2026.webp",
     shortDescription:
       "Explore the best things about Tomorrowland Thailand 2026 including nightlife, festival stages, DJs, beaches, and luxury experiences.",
     description: `
@@ -131,7 +131,7 @@ Tomorrowland Thailand 2026 is expected to become one of Asia’s biggest EDM fes
     category: "EDM Festivals",
     author: "FlyingLyte Team",
     date: "13 May 2026",
-    image: "/images/blogs/why-thailand-is-perfect-for-edm-festival-lovers.png",
+    image: "/images/blogs/why-thailand-is-perfect-for-edm-festival-lovers.webp",
     shortDescription:
       "Discover why Thailand is becoming one of the top destinations for EDM festivals, nightlife, beach parties, and international music events.",
     description: `
@@ -173,7 +173,7 @@ Thailand continues to grow as one of the biggest destinations for EDM festivals 
     author: "FlyingLyte Team",
     date: "14 May 2026",
     image:
-      "/images/blogs/ultimate-thailand-nightlife-guide-for-party-travelers.png",
+      "/images/blogs/ultimate-thailand-nightlife-guide-for-party-travelers.webp",
     shortDescription:
       "Explore Thailand’s exciting nightlife scene with beach clubs, rooftop bars, EDM festivals, luxury parties, and unforgettable travel experiences.",
     description: `
@@ -215,7 +215,7 @@ Thailand continues to grow as Asia’s leading nightlife and EDM travel destinat
     category: "Nightlife & Festivals",
     author: "FlyingLyte Team",
     date: "18 May 2026",
-    image: "/images/blogs/ultimate-thailand-edm-journey-planner-2026.png",
+    image: "/images/blogs/ultimate-thailand-edm-journey-planner-2026.webp",
     shortDescription:
       "Plan your Thailand EDM journey in 2026 with smart travel routes, festival insights, nightlife hacks, and beach party experiences for the perfect trip.",
     description: `

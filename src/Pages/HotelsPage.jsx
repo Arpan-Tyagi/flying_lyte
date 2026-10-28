@@ -77,7 +77,7 @@ const HotelsPage = () => {
                         ref={searchRef}
                         className="relative mx-auto mt-9 w-full max-w-6xl overflow-visible rounded-[22px] border border-[#E6B35C]/35 bg-[#07111c] bg-[length:100%_auto] bg-[position:center_top] bg-no-repeat p-2 shadow-[0_30px_90px_rgba(0,0,0,0.55)] sm:rounded-[28px] sm:bg-[length:cover] sm:bg-center sm:p-3"
                         style={{
-                            backgroundImage: 'url("/images/hotel-journey-background.png")',
+                            backgroundImage: 'url("/images/hotel-journey-background.webp")',
                         }}
                     >
                         {/* dark overlay */}

@@ -62,9 +62,9 @@ const ContactPage = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
-          <h2 className="text-4xl md:text-5xl font-(--font-heading) text-(--gold-main) mb-4">
-            Contact Us
-          </h2>
+          <h1 className="text-4xl md:text-5xl font-(--font-heading) text-(--gold-main) mb-4">
+            Contact FlyingLyte
+          </h1>
           <p className="text-(--text-muted) max-w-2xl mx-auto">
             Have questions about flights, hotels, or travel packages? Our travel
             experts are here to help you plan the perfect journey.

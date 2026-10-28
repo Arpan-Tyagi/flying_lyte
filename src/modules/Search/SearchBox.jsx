@@ -209,10 +209,10 @@ const SearchBox = () => {
 
   const formBackground =
     activeTab === "hotels"
-      ? "/images/hotel-journey-background.png"
+      ? "/images/hotel-journey-background.webp"
       : activeTab === "packages"
-        ? "/images/travel-pattern-bg.jpeg"
-        : "/images/flight-clouds-background.png";
+        ? "/images/travel-pattern-bg.webp"
+        : "/images/flight-clouds-background.webp";
 
   return (
     <div className="relative z-30 mx-auto w-full max-w-5xl">

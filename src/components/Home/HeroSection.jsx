@@ -6,7 +6,7 @@ const HeroSection = () => {
       {/* HERO BACKGROUND */}
       <div className="absolute left-0 right-0 top-0 h-[520px] overflow-hidden bg-[#0B0F14] sm:h-[620px] md:h-[100dvh]">
         <img
-          src="/images/rome-journey-background.png"
+          src="/images/rome-journey-background.webp"
           alt="FlyingLyte Flight, Hotel and Tour Travel"
           className="h-full w-full object-cover object-[58%_center] sm:object-[55%_center] md:object-center"
           loading="eager"

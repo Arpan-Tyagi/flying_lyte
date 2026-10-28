@@ -119,7 +119,7 @@ const PackageDetails = () => {
   });
 
   const images = pkg?.images || [];
-  const heroImage = images?.[0]?.image || "/images/package-placeholder.jpg";
+  const heroImage = images?.[0]?.image || "/images/package-placeholder.webp";
 
   const packageTitle = pkg?.tour_name || pkg?.title || "Holiday Package";
   const destination = pkg?.Country_City_Multicity || "India";
@@ -130,6 +130,17 @@ const PackageDetails = () => {
     pkg?.seo_description && pkg.seo_description !== "N.A."
       ? pkg.seo_description
       : pkg?.description;
+
+  // React 19 renders <title> children as-is, so the title must be one string
+  const durationLabel =
+    pkg?.days && pkg?.Number_of_nights
+      ? ` – ${pkg.days}D/${pkg.Number_of_nights}N`
+      : "";
+  const pageTitle = `${packageTitle} Tour Package${durationLabel} | FlyingLyte`;
+  const pageUrl = `https://www.flyinglyte.com/packages/${slug}`;
+  const absoluteHeroImage = heroImage.startsWith("http")
+    ? heroImage
+    : `https://www.flyinglyte.com${heroImage}`;
 
   const itineraryDays = useMemo(() => parseItinerary(pkg?.Itinery), [pkg]);
   const inclusions = useMemo(() => splitLines(pkg?.Inclusion), [pkg]);
@@ -343,6 +354,10 @@ Please share the best quote and itinerary.`;
   if (isError || !pkg) {
     return (
       <div className="min-h-screen bg-(--bg-main) flex items-center justify-center text-red-400 px-4 text-center">
+        <Helmet>
+          <title>Package Not Found | FlyingLyte</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
         Package not found
       </div>
     );
@@ -359,23 +374,23 @@ Please share the best quote and itinerary.`;
   return (
     <>
       <Helmet>
-        <title>{packageTitle} - FlyingLyte</title>
+        <title>{pageTitle}</title>
         <meta name="description" content={shortDescription} />
-        <link rel="canonical" href={`https://www.flyinglyte.com/packages/${slug}`} />
+        <link rel="canonical" href={pageUrl} />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="FlyingLyte" />
-        <meta property="og:title" content={`${packageTitle} - FlyingLyte`} />
+        <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={shortDescription} />
-        <meta property="og:url" content={`https://www.flyinglyte.com/packages/${slug}`} />
-        <meta property="og:image" content={heroImage || "https://www.flyinglyte.com/images/HeroImage.jpg"} />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:image" content={absoluteHeroImage} />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${packageTitle} - FlyingLyte`} />
+        <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={shortDescription} />
-        <meta name="twitter:image" content={heroImage || "https://www.flyinglyte.com/images/HeroImage.jpg"} />
+        <meta name="twitter:image" content={absoluteHeroImage} />
 
         <script type="application/ld+json">
           {JSON.stringify({
@@ -383,12 +398,19 @@ Please share the best quote and itinerary.`;
             "@type": "Product",
             "name": packageTitle,
             "description": shortDescription,
-            "image": heroImage,
+            "image": images.length
+              ? images.map((img) => img.image)
+              : [absoluteHeroImage],
+            "url": pageUrl,
+            "sku": slug,
+            "brand": { "@type": "Brand", "name": "FlyingLyte" },
             "offers": {
               "@type": "Offer",
+              "url": pageUrl,
               "priceCurrency": "INR",
               "price": pkg?.price || "0",
-              "availability": "https://schema.org/InStock"
+              "availability": "https://schema.org/InStock",
+              "seller": { "@id": "https://www.flyinglyte.com/#organization" }
             }
           })}
         </script>
@@ -705,7 +727,7 @@ Please share the best quote and itinerary.`;
                 >
                   <img
                     src={img.image}
-                    alt={`Package ${index + 1}`}
+                    alt={`${packageTitle} – ${destinationName} photo ${index + 1}`}
                     className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
                    loading="lazy" />
 

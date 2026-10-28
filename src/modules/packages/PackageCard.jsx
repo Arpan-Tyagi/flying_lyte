@@ -42,11 +42,11 @@ const PackageCard = ({ pkg }) => {
       {/* Image */}
       <div className="relative h-56 overflow-hidden">
         <img
-          src={pkg.images?.[0]?.image || "/images/package-placeholder.jpg"}
+          src={pkg.images?.[0]?.image || "/images/package-placeholder.webp"}
           alt={pkg.tour_name}
           onError={(e) => {
             e.currentTarget.onerror = null;
-            e.currentTarget.src = "/images/package-placeholder.jpg";
+            e.currentTarget.src = "/images/package-placeholder.webp";
           }}
           className="w-full h-full object-cover transition duration-700 group-hover:scale-110"
           loading="lazy"

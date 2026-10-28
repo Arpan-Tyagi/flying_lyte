@@ -6,6 +6,21 @@ import { blogs } from "../data/blogs";
 const SITE_URL = "https://www.flyinglyte.com";
 const BLOG_IMAGE_PATH = "/images/blogs/";
 
+// Blog dates are stored as "18 September 2026"; schema.org needs ISO 8601.
+const MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+const toIsoDate = (value) => {
+  const [day, monthName, year] = String(value || "").trim().split(/\s+/);
+  const month = MONTHS.indexOf(String(monthName).toLowerCase()) + 1;
+  if (!month || !/^\d{1,2}$/.test(day) || !/^\d{4}$/.test(year)) {
+    return undefined;
+  }
+  return `${year}-${String(month).padStart(2, "0")}-${day.padStart(2, "0")}`;
+};
+
 const getBlogImage = (blog) => {
   const image = String(blog?.image || "").trim();
 
@@ -91,6 +106,7 @@ const BlogDetails = () => {
       <main className="min-h-screen bg-[var(--bg-main)] text-white flex items-center justify-center px-4">
         <Helmet>
           <title>Blog Not Found | FlyingLyte</title>
+          <meta name="robots" content="noindex" />
           <meta
             name="description"
             content="The travel blog you are looking for could not be found. Explore more travel guides, destination tips, hotel advice, and flight booking updates on FlyingLyte."
@@ -127,10 +143,12 @@ const BlogDetails = () => {
     blog.shortDescription ||
     `Read ${blog.title} on FlyingLyte. Explore travel tips, destination guides, hotel booking advice, flight updates, and useful trip planning information.`;
 
-  const relatedBlogs = blogs
-    .filter((item) => item.slug !== blog.slug)
-    .slice(-3)
-    .reverse();
+  // Prefer posts from the same category, then fill with the newest others
+  const otherBlogs = blogs.filter((item) => item.slug !== blog.slug).reverse();
+  const relatedBlogs = [
+    ...otherBlogs.filter((item) => item.category === blog.category),
+    ...otherBlogs.filter((item) => item.category !== blog.category),
+  ].slice(0, 3);
 
   const blogSchema = {
     "@context": "https://schema.org",
@@ -154,13 +172,15 @@ const BlogDetails = () => {
       "@type": "WebPage",
       "@id": blogUrl,
     },
-    datePublished: blog.date || undefined,
+    url: blogUrl,
+    datePublished: toIsoDate(blog.date),
+    dateModified: toIsoDate(blog.date),
   };
 
   return (
     <main className="min-h-screen bg-[var(--bg-main)] text-white">
       <Helmet>
-        <title>{`${blog.title} | FlyingLyte Travel Blog`}</title>
+        <title>{`${blog.title} | FlyingLyte`}</title>
         <meta name="description" content={metaDescription} />
         <link rel="canonical" href={blogUrl} />
 

@@ -8,7 +8,7 @@ import PackageCard from "./PackageCard";
 import { publicApi } from "../../services/api";
 import SEO from "../../components/SEO";
 
-const PACKAGE_BG_IMAGE = "/images/travel-pattern-bg.jpeg";
+const PACKAGE_BG_IMAGE = "/images/travel-pattern-bg.webp";
 
 const fetchPackages = async (page = 1, limit = 8, destination = "") => {
   const query = new URLSearchParams({
@@ -36,6 +36,8 @@ const PackageSection = ({ limit = 8 }) => {
   const [searchParams] = useSearchParams();
 
   const isPackagesPage = location.pathname === "/packages";
+  // On /packages this is the page heading; on the homepage it sits under the hero H1
+  const TitleTag = isPackagesPage ? "h1" : "h2";
 
   const pageFromUrl = Number(searchParams.get("page")) || 1;
   const destinationFromUrl = searchParams.get("destination") || "";
@@ -224,7 +226,7 @@ const PackageSection = ({ limit = 8 }) => {
             Explore Packages
           </div>
 
-          <h2
+          <TitleTag
             className="
     text-2xl font-bold leading-tight text-white
     [text-shadow:0_5px_24px_rgba(0,0,0,0.95)]
@@ -235,7 +237,7 @@ const PackageSection = ({ limit = 8 }) => {
             <span className="text-(--gold-main) [text-shadow:0_5px_24px_rgba(0,0,0,0.95)]">
               Packages
             </span>
-          </h2>
+          </TitleTag>
 
           <p
             className="

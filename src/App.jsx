@@ -22,6 +22,8 @@ const TermsConditions = lazy(() => import("./Pages/TermsConditions"));
 const PrivacyPolicy = lazy(() => import("./Pages/PrivacyPolicy"));
 const RefundPolicy = lazy(() => import("./Pages/RefundPolicy"));
 const CancellationPolicyPage = lazy(() => import("./Pages/CancellationPolicyPage"));
+const FaqsPage = lazy(() => import("./Pages/FaqsPage"));
+const NotFound = lazy(() => import("./Pages/NotFound"));
 
 // Packages
 const PackageSection = lazy(() => import("./modules/packages/PackageSection"));
@@ -100,6 +102,7 @@ const App = () => {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/refund-policy" element={<RefundPolicy />} />
           <Route path="/cancellation" element={<CancellationPolicyPage />} />
+          <Route path="/faqs" element={<FaqsPage />} />
 
           {/* Flights */}
           <Route path="/flights" element={<FlightsPage />} />
@@ -151,10 +154,7 @@ const App = () => {
           />
 
           {/* 404 Page */}
-          <Route
-            path="*"
-            element={<h1 className="text-center mt-20 text-white">404 - Page Not Found</h1>}
-          />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
 
